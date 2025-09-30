@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from .db import get_db
 
 def init_app(app):
-    @app.route('/weekend-overtime', methods=['GET', 'POST'])
+    @app.route('/', methods=['GET', 'POST'])
     def weekend_overtime():
         db = get_db()
         department = request.cookies.get('department', 'manu')
@@ -30,6 +30,8 @@ def init_app(app):
         # 标记是否使用了备用日期
         use_fallback_date = False
         fallback_date = None
+        display_date = current_date
+        display_column = column_name
 
         if request.method == 'POST':
             # 首先检查是否是 JSON 请求
@@ -43,9 +45,20 @@ def init_app(app):
                     print(f"Received JSON action: {action}")  # 调试信息
 
                     if action == 'add-date':
-                        # 确保字段存在
+                        # 获取请求中的日期
+                        request_date_str = staff_data.get('date')
+                        if request_date_str:
+                            try:
+                                request_date = datetime.strptime(request_date_str, '%Y-%m-%d').date()
+                                target_column = request_date.strftime('%Y_%m_%d')
+                            except ValueError:
+                                target_column = column_name
+                        else:
+                            target_column = column_name
+
+                        # 确保目标字段存在
                         try:
-                            db.execute(f'ALTER TABLE staffs ADD COLUMN "{column_name}" TEXT DEFAULT "bg-1"')
+                            db.execute(f'ALTER TABLE staffs ADD COLUMN "{target_column}" TEXT DEFAULT "bg-1"')
                             db.commit()
                         except Exception as e:
                             print(f"Column issue: {e}")
@@ -56,7 +69,7 @@ def init_app(app):
                             for staff in staff_data['staffs']:
                                 try:
                                     result = db.execute(
-                                        f'UPDATE staffs SET "{column_name}" = ? '
+                                        f'UPDATE staffs SET "{target_column}" = ? '
                                         'WHERE name = ? AND department = ?',
                                         (staff.get('status', 'bg-1'), staff['name'], staff['department'])
                                     )
@@ -68,8 +81,8 @@ def init_app(app):
                                     db.rollback()
                                     continue
 
-                            print(f"Successfully updated {success_count} staff records")
-                            return jsonify({'success': True, 'updated': success_count})
+                            print(f"Successfully updated {success_count} staff records for date {target_column}")
+                            return jsonify({'success': True, 'updated': success_count, 'target_date': target_column})
 
                         return jsonify({'success': False, 'error': '没有员工数据'})
 
@@ -80,10 +93,11 @@ def init_app(app):
 
             # 处理表单请求（非JSON）
             action = request.form.get('action')
-            print(f"Received form action: {action}")
+            print(f"Received form action: {action}")  # 调试信息
 
             if action == 'department':
                 department = request.form['department']
+                print(f"Changing department to: {department}")  # 调试信息
                 resp = make_response(redirect(url_for('weekend_overtime', date=current_date.strftime('%Y-%m-%d'))))
                 resp.set_cookie('department', department, max_age=365*24*3600)
                 return resp
@@ -135,10 +149,6 @@ def init_app(app):
         ).fetchone()['count'] > 0
 
         # 决定使用哪个日期的数据
-        display_date = current_date
-        display_column = column_name
-        use_fallback_date = False
-
         if not has_overtime:
             # 检查前第七天是否有数据
             has_seven_days_data = db.execute(

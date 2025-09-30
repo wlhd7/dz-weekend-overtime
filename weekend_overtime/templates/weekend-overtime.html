@@ -8,9 +8,10 @@
 {% block title %}周末加班单{% endblock %}
 
 {% block content %}
+<!-- 部门选择表单 - 独立表单，确保能正常提交 -->
 <form method="post" class="user-title-end">
 	<label for="department">请选择部门</label>
-	<select name="department">
+	<select name="department" id="department">
 		<option value="manu" {% if department == 'manu' %}selected{% endif %}>制造</option>
 		<option value="qual" {% if department == 'qual' %}selected{% endif %}>品质</option>
 		<option value="craf" {% if department == 'craf' %}selected{% endif %}>工艺</option>
@@ -23,13 +24,14 @@
 	<button type="submit" name="action" value="department">确定</button>
 </form>
 
+<!-- 员工管理表单 - 独立表单 -->
 <form method="post">
 	<label for="name">名字</label>
-	<input name="name" required>
+	<input name="name" id="name" required>
 
 	{% if department == 'manu' %}
 		<label for="sub-department">班组</label>
-		<select name="sub-department" required>
+		<select name="sub-department" id="sub-department" required>
 			<option value="a">铣床</option>
 			<option value="b">车床</option>
 			<option value="c">CNC</option>
@@ -44,9 +46,8 @@
 	<button type="submit" name="action" value="delete">删除</button>
 </form>
 
-
-
-<form>
+<!-- 加班状态显示区域 - 这不是表单，只是显示区域 -->
+<div>
 	<div class='day-control'>
 		<div class="day" id="day">{{ current_date }}</div>
 		{% if use_fallback_date %}
@@ -83,9 +84,10 @@
             提示：当前日期没有加班记录，显示前第七天({{ fallback_date }})的数据
         </div>
 	{% endif %}
-	<button onclick="saveStaffStatus()" type="button">确定</button>
-</form>
-
+	
+	<!-- 独立的确定按钮，不放在form标签内 -->
+	<button type="button" onclick="saveStaffStatus()">确定</button>
+</div>
 
 <script>
 	function saveStaffStatus() {
@@ -103,7 +105,7 @@
 			staffData.push({
 				name: item.textContent.trim(),
 				department: '{{ department }}',
-				date: '{{ current_date }}',
+				date: '{{ display_date.strftime("%Y-%m-%d") if display_date else current_date.strftime("%Y-%m-%d") }}',
 				status: status
 			})
 		})
@@ -116,15 +118,17 @@
 			body: JSON.stringify({
 				action: 'add-date',
 				staffs: staffData,
-				date: '{{ current_date }}'
+				date: '{{ display_date.strftime("%Y-%m-%d") if display_date else current_date.strftime("%Y-%m-%d") }}',
+				use_fallback: {{ 'true' if use_fallback_date else 'false' }}
 			})
 		})
 		.then(response => response.json())
 		.then(data => {
 			if (data.success) {
 				alert('保存成功')
+				window.location.reload()
 			} else {
-				alert('保存失败')
+				alert('保存失败: ' + (data.error || '未知错误'))
 			}
 		})
 		.catch(error => {
@@ -145,57 +149,59 @@
 		}
 
 		for (let container in containers) {
-			containers[container].className = 'staffs-block'
+			if (containers[container]) {
+				containers[container].className = 'staffs-block'
+			}
 		}
 
 		{% for staff in staffs %}
 			{
 				let subDept = "{{ staff['sub_department'] }}"
 				let targetContainer = containers[subDept] || containers['g']
-				let staffElement = document.createElement('div')
-				staffElement.textContent = "{{ staff['name'] }}"
-				staffElement.className = 'staff-item {{ staff["current_status"] or "bg-1" }}'
-				staffElement.addEventListener('click', () => {
-					if (staffElement.classList.contains('bg-1')) {
-						staffElement.classList.remove('bg-1')
-						staffElement.classList.add('bg-2')
-					} else if (staffElement.classList.contains('bg-2')) {
-						staffElement.classList.remove('bg-2')
-						staffElement.classList.add('bg-3')
-					} else if (staffElement.classList.contains('bg-3')) {
-						staffElement.classList.remove('bg-3')
-						staffElement.classList.add('bg-1')
-					}
-
-				})
-
-				targetContainer.appendChild(staffElement)
+				if (targetContainer) {
+					let staffElement = document.createElement('div')
+					staffElement.textContent = "{{ staff['name'] }}"
+					staffElement.className = 'staff-item {{ staff["current_status"] or "bg-1" }}'
+					staffElement.addEventListener('click', () => {
+						if (staffElement.classList.contains('bg-1')) {
+							staffElement.classList.remove('bg-1')
+							staffElement.classList.add('bg-2')
+						} else if (staffElement.classList.contains('bg-2')) {
+							staffElement.classList.remove('bg-2')
+							staffElement.classList.add('bg-3')
+						} else if (staffElement.classList.contains('bg-3')) {
+							staffElement.classList.remove('bg-3')
+							staffElement.classList.add('bg-1')
+						}
+					})
+					targetContainer.appendChild(staffElement)
+				}
 			}
 		{% endfor %}
 	{% else %}
 		const container = document.getElementById('staffs-block')
-
-		{% for staff in staffs %}
-			{
-				let staffElement = document.createElement('div')
-				staffElement.textContent = "{{ staff['name'] }}"
-				staffElement.className = 'staff-item {{ staff["current_status"] or "bg-1" }}'
-				staffElement.addEventListener('click', () => {
-					if (staffElement.classList.contains('bg-1')) {
-						staffElement.classList.remove('bg-1')
-						staffElement.classList.add('bg-2')
-					} else if (staffElement.classList.contains('bg-2')) {
-						staffElement.classList.remove('bg-2')
-						staffElement.classList.add('bg-3')
-					} else if (staffElement.classList.contains('bg-3')) {
-						staffElement.classList.remove('bg-3')
-						staffElement.classList.add('bg-1')
-					}
-
-				})
-				container.appendChild(staffElement)
-			}
-		{% endfor %}
+		if (container) {
+			{% for staff in staffs %}
+				{
+					let staffElement = document.createElement('div')
+					staffElement.textContent = "{{ staff['name'] }}"
+					staffElement.className = 'staff-item {{ staff["current_status"] or "bg-1" }}'
+					staffElement.addEventListener('click', () => {
+						if (staffElement.classList.contains('bg-1')) {
+							staffElement.classList.remove('bg-1')
+							staffElement.classList.add('bg-2')
+						} else if (staffElement.classList.contains('bg-2')) {
+							staffElement.classList.remove('bg-2')
+							staffElement.classList.add('bg-3')
+						} else if (staffElement.classList.contains('bg-3')) {
+							staffElement.classList.remove('bg-3')
+							staffElement.classList.add('bg-1')
+						}
+					})
+					container.appendChild(staffElement)
+				}
+			{% endfor %}
+		}
 	{% endif %}
 </script>
 {% endblock %}
