@@ -1,0 +1,14 @@
+[project]
+name = "weekend-overtime"
+version = "1.0.0"
+description = "A weekend-overtime website"
+maintainers = [{name = "wlhd", email = "3509896163@qq.com"}]
+requires-python = ">=3.8"
+dependencies = ["flask"]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[project.urls]
+Homepage = ""
