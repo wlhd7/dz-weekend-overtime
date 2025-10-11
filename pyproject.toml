@@ -1,5 +1,5 @@
 [project]
-name = "weekend-overtime"
+name = "weekendOvertime"
 version = "1.0.0"
 description = "A weekend-overtime website"
 maintainers = [{name = "wlhd", email = "3509896163@qq.com"}]

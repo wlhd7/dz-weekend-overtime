@@ -1,3 +1,12 @@
+body {
+	width: 800px;
+}
+
+.red {
+	background: red;
+	color: white;
+}
+
 .staffs-block {
 	display: grid;
 	grid-template-columns: repeat(11, 1fr);

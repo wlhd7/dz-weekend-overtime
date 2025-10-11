@@ -50,9 +50,6 @@
 <div>
 	<div class='day-control'>
 		<div class="day" id="day">{{ current_date }}</div>
-		{% if use_fallback_date %}
-               		<span style="color: orange; font-size: 0.8em;">(显示前第七天数据)</span>
-            	{% endif %}
 		<a href="{{ url_for('weekend_overtime', date=prev_date) }}" class="steelblue link">上一天</a>
 		<a href="{{ url_for('weekend_overtime', date=next_date) }}" class="steelblue link">下一天</a>
 		<p><span class="red">提示：</span>每一天提交（确定）一次。<span class="bg-2">浅黄色</span>为公司内加班。 <span class="bg-3">浅蓝色</span>为出差。</p>
