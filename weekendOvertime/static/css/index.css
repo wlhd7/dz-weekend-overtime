@@ -1,0 +1,65 @@
+/* Main staff list container */
+.staff-list {
+    display: grid;
+    width: 100%;
+    max-width: 1000px;
+    grid-template-columns: repeat(10, 1fr);
+    list-style: none;
+    gap: 10px;
+    background-color: #E6E6FA;
+    padding: 5px 10px;
+    box-sizing: border-box;
+}
+
+/* Each staff item */
+.staff {
+    cursor: pointer;
+    padding: 4px 3px;
+    text-align: center;
+    font-size: 14px;
+    user-select: none;
+}
+
+.sub-dept-name {
+    font-weight: bold;
+}
+
+ul {
+    margin: 0;
+}
+
+.bg-1 { background-color: white; }
+.bg-2 { background-color: #F0E68C; }
+.bg-3 { background-color: #00BFFF; }
+
+/* Clear button and form elements */
+#clear-button {
+    margin-left: 8px;
+    padding: 6px 10px;
+    border: 1px solid #888;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+select, input[type="text"], button[type="submit"] {
+    font-size: 14px;
+    padding: 6px 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .staff-list { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media (max-width: 700px) {
+    .staff-list { grid-template-columns: repeat(4, 1fr); }
+    .staff { font-size: 15px; padding: 10px 8px; }
+}
+
+@media (max-width: 480px) {
+    .staff-list { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .staff { font-size: 16px; padding: 12px 10px; }
+    #clear-button { display: block; margin: 10px 0; width: 100%; }
+    form { display: flex; flex-direction: column; gap: 8px; }
+    select, input[type="text"], button[type="submit"] { width: 100%; box-sizing: border-box; }
+}

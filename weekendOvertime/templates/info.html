@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}今日标注名单{% endblock %}
+
+{% block content %}
+<p>sat</p>
+<div>制造: {{ sat_normal.get('制造', []) | join(', ') }}</div>
+<div>制造 evection: {{ sat_evec.get('制造', []) | join(', ') }}</div>
+<div>品质: {{ sat_normal.get('品质', []) | join(', ') }}</div>
+<div>品质 evection: {{ sat_evec.get('品质', []) | join(', ') }}</div>
+<div>工艺: {{ sat_normal.get('工艺', []) | join(', ') }}</div>
+<div>工艺 evection: {{ sat_evec.get('工艺', []) | join(', ') }}</div>
+<div>装配: {{ sat_normal.get('装配', []) | join(', ') }}</div>
+<div>装配 evection: {{ sat_evec.get('装配', []) | join(', ') }}</div>
+<div>电气: {{ sat_normal.get('电气', []) | join(', ') }}</div>
+<div>电气 evection: {{ sat_evec.get('电气', []) | join(', ') }}</div>
+<div>技术: {{ sat_normal.get('技术', []) | join(', ') }}</div>
+<div>技术 evection: {{ sat_evec.get('技术', []) | join(', ') }}</div>
+<div>机加: {{ sat_normal.get('机加', []) | join(', ') }}</div>
+<div>机加 evection: {{ sat_evec.get('机加', []) | join(', ') }}</div>
+<div>业务: {{ sat_normal.get('业务', []) | join(', ') }}</div>
+<div>业务 evection: {{ sat_evec.get('业务', []) | join(', ') }}</div>
+<p>sun</p>
+<div>制造: {{ sun_normal.get('制造', []) | join(', ') }}</div>
+<div>制造 evection: {{ sun_evec.get('制造', []) | join(', ') }}</div>
+<div>品质: {{ sun_normal.get('品质', []) | join(', ') }}</div>
+<div>品质 evection: {{ sun_evec.get('品质', []) | join(', ') }}</div>
+<div>工艺: {{ sun_normal.get('工艺', []) | join(', ') }}</div>
+<div>工艺 evection: {{ sun_evec.get('工艺', []) | join(', ') }}</div>
+<div>装配: {{ sun_normal.get('装配', []) | join(', ') }}</div>
+<div>装配 evection: {{ sun_evec.get('装配', []) | join(', ') }}</div>
+<div>电气: {{ sun_normal.get('电气', []) | join(', ') }}</div>
+<div>电气 evection: {{ sun_evec.get('电气', []) | join(', ') }}</div>
+<div>技术: {{ sun_normal.get('技术', []) | join(', ') }}</div>
+<div>技术 evection: {{ sun_evec.get('技术', []) | join(', ') }}</div>
+<div>机加: {{ sun_normal.get('机加', []) | join(', ') }}</div>
+<div>机加 evection: {{ sun_evec.get('机加', []) | join(', ') }}</div>
+<div>业务: {{ sun_normal.get('业务', []) | join(', ') }}</div>
+<div>业务 evection: {{ sun_evec.get('业务', []) | join(', ') }}</div>
+{% endblock %}

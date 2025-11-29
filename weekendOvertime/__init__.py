@@ -1,7 +1,7 @@
 from flask import Flask
 import os
-from .work import init_app
 from .db import init_db
+from .routes import init_route, views
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -15,9 +15,9 @@ def create_app():
     except OSError:
         pass
 
-    init_app(app)
-
     init_db(app)
+
+    init_route(app, views)
 
     app.add_url_rule('/', endpoint='weekend_overtime')
 

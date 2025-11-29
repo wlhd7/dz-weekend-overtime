@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}sat{% endblock %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+    <div>
+        <h2> 上班人员统计</h2>
+        <div>
+            <div>部门</div>
+            <div>制造部</div>
+            <div>仓库</div>
+            <div>装配部</div>
+            <div>电气部</div>
+            <div>技术部</div>
+            <div>机加部</div>
+            <div>业务部</div>
+            <div>品质部</div>
+            <div>工艺部</div>
+            <div>采购部</div>
+        </div>
+        <div>
+            <div>人数</div>
+            <div>{{ sat_counts['manufacturing'] }}</div>
+            <div>{{ sat_counts['warehouse'] }}</div>
+            <div>{{ sat_counts['assembly'] }}</div>
+            <div>{{ sat_counts['electrical'] }}</div>
+            <div>{{ sat_counts['technical'] }}</div>
+            <div>{{ sat_counts['machining'] }}</div>
+            <div>{{ sat_counts['business'] }}</div>
+            <div>{{ sat_counts['quality'] }}</div>
+            <div>{{ sat_counts['process'] }}</div>
+            <div>{{ sat_counts['purchasing'] }}</div>
+        </div>
+        <div></div>
+    </div>
+{% endblock %}

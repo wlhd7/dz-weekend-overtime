@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}周末加班单{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
+{% block content %}
+    <h2>{{ department }}</h2>
+
+    <label for="day-select">显示日期：</label>
+    <select id="day-select" name="day">
+        <option value="sat">周六</option>
+        <option value="sun">周日</option>
+    </select>
+
+    <form method="post" action="{{ url_for('edit_names') }}">
+        <label for="name">姓名：</label>
+        <input type="text" id="name" name="name" required>
+        {% if sub_departments %}
+            <label for="sub_department">班组：</label>
+            <select id="sub_department" name="sub_department">
+                {% for sd in sub_departments %}
+                    <option value="{{ sd['id'] }}">{{ sd['name'] }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+        <button type="submit" name="action" value="add">添加</button>
+        <button type="submit" name="action" value="remove">移除</button>
+    </form>
+
+
+    <button id="clear-button" type="button">清空当天</button>
+    <label></label>
+
+    
+
+    {% if staffs %}
+        {% if sub_departments %}
+            {% for sd in sub_departments %}
+                <div class="sub-dept-block">
+                    <div class="sub-dept-name">{{ sd['name'] }}</div>
+                    <ul class="staff-list">
+                    {% for s in staffs %}
+                        {% if s['sub_department_id'] == sd['id'] %}
+                            {% set cls = 'bg-1' %}
+                            {# set initial class from sat by default; data attrs include both sat and sun #}
+                            {% if s['sat_evection'] is not none %}
+                                {% if s['sat_evection'] == 1 %}
+                                    {% set cls = 'bg-3' %}
+                                {% else %}
+                                    {% set cls = 'bg-2' %}
+                                {% endif %}
+                            {% endif %}
+                            <li class="staff {{ cls }}" data-staff-id="{{ s['id'] }}" data-sat-evection="{{ s['sat_evection'] }}" data-sun-evection="{{ s['sun_evection'] }}">{{ s['name'] }}</li>
+                        {% endif %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+
+        {% else %}
+            <ul class="staff-list">
+            {% for s in staffs %}
+                {% set cls = 'bg-1' %}
+                {% if s['sat_evection'] is not none %}
+                    {% if s['sat_evection'] == 1 %}
+                        {% set cls = 'bg-3' %}
+                    {% else %}
+                        {% set cls = 'bg-2' %}
+                    {% endif %}
+                {% endif %}
+                <li class="staff {{ cls }}" data-staff-id="{{ s['id'] }}" data-sat-evection="{{ s['sat_evection'] }}" data-sun-evection="{{ s['sun_evection'] }}">{{ s['name'] }}{% if s['sub_department_name'] %} — {{ s['sub_department_name'] }}{% endif %}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endif %}
+
+    <p><a href="{{ url_for('select_department') }}">切换部门</a></p>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var daySelect = document.getElementById('day-select');
+            function applyDayToAll(day) {
+                document.querySelectorAll('.staff-list .staff').forEach(function (li) {
+                    var sat = li.getAttribute('data-sat-evection');
+                    var sun = li.getAttribute('data-sun-evection');
+                    var val = null;
+                    if (day === 'sat') val = sat;
+                    else if (day === 'sun') val = sun;
+
+                    // normalize null/undefined/empty -> not scheduled
+                    if (val === null || val === undefined || val === '' || val === 'None') {
+                        li.classList.remove('bg-2', 'bg-3');
+                        if (!li.classList.contains('bg-1')) li.classList.add('bg-1');
+                    } else if (String(val) === '1') {
+                        li.classList.remove('bg-1', 'bg-2');
+                        if (!li.classList.contains('bg-3')) li.classList.add('bg-3');
+                    } else {
+                        li.classList.remove('bg-1', 'bg-3');
+                        if (!li.classList.contains('bg-2')) li.classList.add('bg-2');
+                    }
+                });
+            }
+
+            // initialize
+            applyDayToAll(daySelect ? daySelect.value : 'sat');
+            if (daySelect) daySelect.addEventListener('change', function () { applyDayToAll(daySelect.value); });
+            var clearButton = document.getElementById('clear-button');
+            if (clearButton) {
+                clearButton.addEventListener('click', function () {
+                    var day = (daySelect && daySelect.value) ? daySelect.value : 'sat';
+                    // For each staff li, optimistically set to bg-1 and POST to server
+                    document.querySelectorAll('.staff-list .staff').forEach(function (li) {
+                        var prevClass = li.classList.contains('bg-1') ? 'bg-1' : (li.classList.contains('bg-2') ? 'bg-2' : (li.classList.contains('bg-3') ? 'bg-3' : null));
+                        if (prevClass === 'bg-1') return; // already cleared
+
+                        // optimistic change
+                        if (prevClass) li.classList.remove(prevClass);
+                        li.classList.add('bg-1');
+
+                        var dataAttr = 'data-' + day + '-evection';
+                        li.removeAttribute(dataAttr);
+
+                        var staffId = li.getAttribute('data-staff-id');
+                        fetch("{{ url_for('toggle_sat') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ staff_id: Number(staffId), status: 'bg-1', day: day })
+                        }).then(function (res) { return res.json(); }).then(function (json) {
+                            if (!json || !json.ok) {
+                                // revert on error
+                                li.classList.remove('bg-1');
+                                if (prevClass) li.classList.add(prevClass);
+                                if (prevClass === 'bg-1') li.removeAttribute(dataAttr);
+                                else if (prevClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                                else if (prevClass === 'bg-3') li.setAttribute(dataAttr, '1');
+                            }
+                        }).catch(function () {
+                            li.classList.remove('bg-1');
+                            if (prevClass) li.classList.add(prevClass);
+                            if (prevClass === 'bg-1') li.removeAttribute(dataAttr);
+                            else if (prevClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                            else if (prevClass === 'bg-3') li.setAttribute(dataAttr, '1');
+                        });
+                    });
+                });
+            }
+            document.querySelectorAll('.staff-list').forEach(function (ul) {
+                ul.addEventListener('click', function (ev) {
+                    var li = ev.target.closest('li');
+                    if (!li || !ul.contains(li)) return;
+                    var prevClass = null;
+                    if (li.classList.contains('bg-1')) prevClass = 'bg-1';
+                    if (li.classList.contains('bg-2')) prevClass = 'bg-2';
+                    if (li.classList.contains('bg-3')) prevClass = 'bg-3';
+
+                    // determine next class
+                    var nextClass = 'bg-2';
+                    if (prevClass === 'bg-1') nextClass = 'bg-2';
+                    else if (prevClass === 'bg-2') nextClass = 'bg-3';
+                    else if (prevClass === 'bg-3') nextClass = 'bg-1';
+
+                    // optimistic UI update
+                    if (prevClass) li.classList.remove(prevClass);
+                    li.classList.add(nextClass);
+
+                    // send update to server using currently selected day
+                    var staffId = li.getAttribute('data-staff-id');
+                    var day = (daySelect && daySelect.value) ? daySelect.value : 'sat';
+
+                    // optimistic update of the data attribute for the selected day
+                    var dataAttr = 'data-' + day + '-evection';
+                    if (nextClass === 'bg-1') {
+                        li.removeAttribute(dataAttr);
+                    } else if (nextClass === 'bg-2') {
+                        li.setAttribute(dataAttr, '0');
+                    } else if (nextClass === 'bg-3') {
+                        li.setAttribute(dataAttr, '1');
+                    }
+
+                    fetch("{{ url_for('toggle_sat') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ staff_id: Number(staffId), status: nextClass, day: day })
+                    }).then(function (res) { return res.json(); }).then(function (json) {
+                        if (!json || !json.ok) {
+                            // revert UI change on error
+                            li.classList.remove(nextClass);
+                            if (prevClass) li.classList.add(prevClass);
+                            // revert data attr
+                            if (prevClass === 'bg-1') li.removeAttribute(dataAttr);
+                            else if (prevClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                            else if (prevClass === 'bg-3') li.setAttribute(dataAttr, '1');
+                        }
+                    }).catch(function () {
+                        // network error, revert
+                        li.classList.remove(nextClass);
+                        if (prevClass) li.classList.add(prevClass);
+                        if (prevClass === 'bg-1') li.removeAttribute(dataAttr);
+                        else if (prevClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                        else if (prevClass === 'bg-3') li.setAttribute(dataAttr, '1');
+                    });
+                });
+            });
+        });
+    </script>
+{% endblock %}

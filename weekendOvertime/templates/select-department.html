@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}选择部门{% endblock %}
+
+{% block content %}
+<div>请选择：</div>
+<form method="post">
+    <div>
+        <button type="submit" name="department" value=1>制造</button>
+        <button type="submit" name="department" value=2>品质</button>
+        <button type="submit" name="department" value=3>工艺</button>
+        <button type="submit" name="department" value=4>装配</button>
+        <button type="submit" name="department" value=5>电气</button>
+        <button type="submit" name="department" value=6>技术</button>
+        <button type="submit" name="department" value=7>机加</button>
+        <button type="submit" name="department" value=8>业务</button>
+    </div>
+</form>
+{% endblock %}
