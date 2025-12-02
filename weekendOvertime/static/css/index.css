@@ -32,6 +32,10 @@ ul {
 .bg-2 { background-color: #F0E68C; }
 .bg-3 { background-color: #00BFFF; }
 
+.inline-text {
+    display: inline;
+}
+
 /* Clear button and form elements */
 #clear-button {
     margin-left: 8px;
