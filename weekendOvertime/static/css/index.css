@@ -7,7 +7,7 @@
     list-style: none;
     gap: 10px;
     background-color: #E6E6FA;
-    padding: 5px 10px;
+    padding: 8px;
     box-sizing: border-box;
 }
 
@@ -24,6 +24,21 @@
     font-weight: bold;
 }
 
+form {
+    border: 2px solid green;
+    padding: 10px;
+}
+
+.day, .note, .function {
+    margin: 20px 0;
+}
+
+.function button {
+    margin-right: 13px;
+    padding: 8px;
+}
+
+
 ul {
     margin: 0;
 }
@@ -38,17 +53,9 @@ ul {
 
 /* Clear button and form elements */
 button {
-    margin-left: 8px;
-    padding: 6px 10px;
     border: 1px solid #888;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 10px;
-}
-
-select, input[type="text"], button[type="submit"] {
-    font-size: 14px;
-    padding: 6px 8px;
 }
 
 /* Responsive adjustments */
@@ -57,16 +64,21 @@ select, input[type="text"], button[type="submit"] {
 }
 
 @media (max-width: 700px) {
+    body { font-size: 21px; }
     .staff-list { grid-template-columns: repeat(4, 1fr); }
-    .staff { font-size: 15px; padding: 10px 8px; }
+    .staff { font-size: 21px; }
+    button { font-size: 21px; }
+    input { font-size: 21px; }
+    select { font-size: 21px; }
 }
 
 @media (max-width: 480px) {
-    .staff-list { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .staff { font-size: 16px; padding: 12px 10px; }
-    #clear-button { display: block; margin: 10px 0; width: 100%; }
-    form { display: flex; flex-direction: column; gap: 8px; }
-    select, input[type="text"], button[type="submit"] { width: 100%; box-sizing: border-box; }
+    body { font-size: 21px; }
+    .staff-list { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .staff { font-size: 21px; padding: 10px 0; }
+    button { font-size: 21px; }
+    input { font-size: 21px; }
+    select { font-size: 21px; }
 }
 
 .header {

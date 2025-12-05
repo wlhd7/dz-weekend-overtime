@@ -14,11 +14,13 @@
         <p><a href="{{ url_for('select_department') }}">切换部门</a></p>
     </div>
 
-    <label for="day-select">显示日期：</label>
-    <select id="day-select" name="day">
-        <option value="sat">周六</option>
-        <option value="sun">周日</option>
-    </select>
+    <div class="day">
+        <label for="day-select">显示日期：</label>
+        <select id="day-select" name="day">
+            <option value="sat">周六</option>
+            <option value="sun">周日</option>
+        </select>
+    </div>
 
     <form method="post" action="{{ url_for('edit_names') }}">
         <label for="name">姓名：</label>
@@ -35,14 +37,15 @@
         <button type="submit" name="action" value="remove">移除</button>
     </form>
 
+    <div class="function">
+        <button id="clear-button" type="button">无人加班</button>
+    
+        <button id="all-internal-button" type="button">全部公司内加班</button>
+    
+        <button id="all-evection-button" type="button">全部出差</button>
+    </div>
 
-    <button id="clear-button" type="button">无人加班</button>
-
-    <button id="all-internal-button" type="button">全部公司内加班</button>
-
-    <button id="all-evection-button" type="button">全部出差</button>
-
-    <div>注：公司内加班使用<div class="bg-2 inline-text">浅黄色</div>标记，出差使用<div class="bg-3 inline-text">浅蓝色</div>标记</div>    
+    <div class="note">注：公司内加班使用<div class="bg-2 inline-text">浅黄色</div>标记，出差使用<div class="bg-3 inline-text">浅蓝色</div>标记</div>    
 
     {% if staffs %}
         {% if sub_departments %}
