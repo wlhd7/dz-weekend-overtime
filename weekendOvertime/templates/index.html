@@ -8,7 +8,11 @@
 {% endblock %}
 
 {% block content %}
-    <h2>{{ department }}</h2>
+    <div class="header">
+        <h2>{{ department }}</h2>
+    
+        <p><a href="{{ url_for('select_department') }}">切换部门</a></p>
+    </div>
 
     <label for="day-select">显示日期：</label>
     <select id="day-select" name="day">
@@ -32,8 +36,11 @@
     </form>
 
 
-    <button id="clear-button" type="button">清空当天</button>
-    <label></label>
+    <button id="clear-button" type="button">无人加班</button>
+
+    <button id="all-internal-button" type="button">全部公司内加班</button>
+
+    <button id="all-evection-button" type="button">全部出差</button>
 
     <div>注：公司内加班使用<div class="bg-2 inline-text">浅黄色</div>标记，出差使用<div class="bg-3 inline-text">浅蓝色</div>标记</div>    
 
@@ -78,7 +85,6 @@
         {% endif %}
     {% endif %}
 
-    <p><a href="{{ url_for('select_department') }}">切换部门</a></p>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var daySelect = document.getElementById('day-select');
@@ -147,6 +153,85 @@
                     });
                 });
             }
+
+            // Helper: update a single staff's status for `day` on the server.
+            // Returns a Promise that resolves true on success, false on failure.
+            function updateStaffStatus(li, targetClass, day) {
+                return new Promise(function (resolve) {
+                    var prevClass = null;
+                    if (li.classList.contains('bg-1')) prevClass = 'bg-1';
+                    if (li.classList.contains('bg-2')) prevClass = 'bg-2';
+                    if (li.classList.contains('bg-3')) prevClass = 'bg-3';
+
+                    // optimistic UI
+                    if (prevClass) li.classList.remove(prevClass);
+                    li.classList.add(targetClass);
+
+                    var dataAttr = 'data-' + day + '-evection';
+                    if (targetClass === 'bg-1') li.removeAttribute(dataAttr);
+                    else if (targetClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                    else if (targetClass === 'bg-3') li.setAttribute(dataAttr, '1');
+
+                    var staffId = li.getAttribute('data-staff-id');
+                    fetch("{{ url_for('toggle_sat') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ staff_id: Number(staffId), status: targetClass, day: day })
+                    }).then(function (res) { return res.json(); }).then(function (json) {
+                        if (!json || !json.ok) {
+                            // revert on error
+                            li.classList.remove(targetClass);
+                            if (prevClass) li.classList.add(prevClass);
+                            if (prevClass === 'bg-1') li.removeAttribute(dataAttr);
+                            else if (prevClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                            else if (prevClass === 'bg-3') li.setAttribute(dataAttr, '1');
+                            resolve(false);
+                        } else {
+                            resolve(true);
+                        }
+                    }).catch(function () {
+                        // network error, revert
+                        li.classList.remove(targetClass);
+                        if (prevClass) li.classList.add(prevClass);
+                        if (prevClass === 'bg-1') li.removeAttribute(dataAttr);
+                        else if (prevClass === 'bg-2') li.setAttribute(dataAttr, '0');
+                        else if (prevClass === 'bg-3') li.setAttribute(dataAttr, '1');
+                        resolve(false);
+                    });
+                });
+            }
+
+            // Apply a target class to all staff sequentially to avoid spamming the DB
+            // targetClass: 'bg-1' | 'bg-2' | 'bg-3'
+            async function applyToAllSequential(targetClass) {
+                var day = (daySelect && daySelect.value) ? daySelect.value : 'sat';
+
+                // Disable the control buttons while working to prevent duplicates
+                var allIntBtn = document.getElementById('all-internal-button');
+                var allEvcBtn = document.getElementById('all-evection-button');
+                [allIntBtn, allEvcBtn].forEach(function(b){ if (b) b.disabled = true; });
+
+                var items = Array.from(document.querySelectorAll('.staff-list .staff'));
+                for (var i = 0; i < items.length; i++) {
+                    var li = items[i];
+                    var prevClass = li.classList.contains('bg-1') ? 'bg-1' : (li.classList.contains('bg-2') ? 'bg-2' : (li.classList.contains('bg-3') ? 'bg-3' : null));
+                    if (prevClass === targetClass) continue; // no-op
+
+                    // Await each update to reduce contention.
+                    // We don't stop the whole operation on a single failure; continue.
+                    // eslint-disable-next-line no-await-in-loop
+                    await updateStaffStatus(li, targetClass, day);
+                }
+
+                // Re-enable buttons
+                [allIntBtn, allEvcBtn].forEach(function(b){ if (b) b.disabled = false; });
+            }
+
+            var allInternalBtn = document.getElementById('all-internal-button');
+            if (allInternalBtn) allInternalBtn.addEventListener('click', function () { applyToAllSequential('bg-2'); });
+
+            var allEveBtn = document.getElementById('all-evection-button');
+            if (allEveBtn) allEveBtn.addEventListener('click', function () { applyToAllSequential('bg-3'); });
             document.querySelectorAll('.staff-list').forEach(function (ul) {
                 ul.addEventListener('click', function (ev) {
                     var li = ev.target.closest('li');

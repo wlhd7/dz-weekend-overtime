@@ -28,7 +28,8 @@ def index():
         'LEFT JOIN sub_departments ON staffs.sub_department_id = sub_departments.id '
         'LEFT JOIN sat ON sat.staff_id = staffs.id '
         'LEFT JOIN sun ON sun.staff_id = staffs.id '
-        'WHERE staffs.department_id = ? ORDER BY staffs.name',
+        'WHERE staffs.department_id = ?'
+        ' ORDER BY staffs.name',
         (dept_id,)
     ).fetchall()
 

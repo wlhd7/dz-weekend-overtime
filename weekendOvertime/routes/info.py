@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request
 from datetime import datetime, timedelta
 try:
     from zoneinfo import ZoneInfo
@@ -28,16 +28,24 @@ def info():
     # defensive: column may not exist in older DBs
     try:
         sat_rows = db.execute(
-            'SELECT s.id AS staff_id, s.name AS staff_name, d.name AS dept_name, sat.is_evection AS is_evection FROM sat JOIN staffs s ON sat.staff_id = s.id JOIN departments d ON s.department_id = d.id WHERE sat.updated_at = ? ORDER BY d.name, s.name',
-            (today,)
+            'SELECT s.id AS staff_id, s.name AS staff_name, d.name AS dept_name, sat.is_evection AS is_evection'
+            ' FROM sat JOIN staffs s ON sat.staff_id = s.id'
+            ' JOIN departments d ON s.department_id = d.id'
+            # ' WHERE sat.updated_at = ?'
+            ' ORDER BY d.name, s.name',
+            # (today,)
         ).fetchall()
     except Exception:
         sat_rows = []
 
     try:
         sun_rows = db.execute(
-            'SELECT s.id AS staff_id, s.name AS staff_name, d.name AS dept_name, sun.is_evection AS is_evection FROM sun JOIN staffs s ON sun.staff_id = s.id JOIN departments d ON s.department_id = d.id WHERE sun.updated_at = ? ORDER BY d.name, s.name',
-            (today,)
+            'SELECT s.id AS staff_id, s.name AS staff_name, d.name AS dept_name, sun.is_evection AS is_evection'
+            ' FROM sun JOIN staffs s ON sun.staff_id = s.id'
+            ' JOIN departments d ON s.department_id = d.id'
+            # ' WHERE sun.updated_at = ?'
+            ' ORDER BY d.name, s.name',
+            # (today,)
         ).fetchall()
     except Exception:
         sun_rows = []
@@ -57,5 +65,9 @@ def info():
 
     sat_normal, sat_evec = build_maps(sat_rows)
     sun_normal, sun_evec = build_maps(sun_rows)
+
+    # (Previously the info page respected client-side cookies that hid
+    # 'no overtime' for a day. That behavior has been removed so the
+    # info page always reflects the database state.)
 
     return render_template('info.html', today=today, sat_normal=sat_normal, sat_evec=sat_evec, sun_normal=sun_normal, sun_evec=sun_evec)
