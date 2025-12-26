@@ -22,6 +22,8 @@
         </select>
     </div>
 
+    <a href="{{ url_for('preset_add') }}">编辑预设</a>
+
     <form method="post" action="{{ url_for('edit_names') }}">
         <label for="name">姓名：</label>
         <input type="text" id="name" name="name" required>
