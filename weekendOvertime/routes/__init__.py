@@ -3,8 +3,9 @@ from .info import info
 from .edit_names import edit_names
 from .toggle_sat import toggle_sat
 from .preset import preset_add, preset_delete
+from .view import view
 
-views = [index, info, select_department, edit_names, toggle_sat, preset_add, preset_delete]
+views = [index, info, select_department, edit_names, toggle_sat, preset_add, preset_delete, view]
 
 
 def init_route(app, views):
@@ -48,4 +49,10 @@ def init_route(app, views):
         '/preset/delete',
         view_func=views[6],
         methods=['POST']
+    )
+
+    app.add_url_rule(
+        '/view',
+        view_func=views[7],
+        methods=['GET', 'POST']
     )
