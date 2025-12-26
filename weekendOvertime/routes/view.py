@@ -13,17 +13,28 @@ def _dept_id_from_cookie():
 
 
 def _parse_time_presets(rows):
-    # rows: iterable of row objects with 'preset_name' like '09:00-18:00'
+    # rows: iterable of row objects from `presets_time`.
+    # Support entries in two forms:
+    #  - range: "09:00-18:00" -> begin: 09:00, end: 18:00
+    #  - single token: "09:00" -> include as both begin and end option
     begins = []
     ends = []
     for r in rows:
-        if not r['preset_name']:
+        name = r.get('preset_name') if hasattr(r, 'get') else r['preset_name']
+        if not name:
             continue
-        parts = r['preset_name'].split('-', 1)
-        if len(parts) == 2:
+        if '-' in name:
+            parts = name.split('-', 1)
             b, e = parts[0].strip(), parts[1].strip()
-            begins.append(b)
-            ends.append(e)
+            if b:
+                begins.append(b)
+            if e:
+                ends.append(e)
+        else:
+            val = name.strip()
+            if val:
+                begins.append(val)
+                ends.append(val)
     # unique preserve order
     def uniq(seq):
         seen = set(); out = []
