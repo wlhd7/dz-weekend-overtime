@@ -13,8 +13,11 @@
 			<li>
 				<strong>{{ s['name'] }}</strong>
 				<ul>
+					{% if s['sat_evection'] is not none or s['sat_content'] or s['sat_begin_time'] or s['sat_end_time'] %}
 					<li>
+                        <!--
 						<strong>周六</strong>
+                    -->
 						<div>
 							<select class="preset-content" data-staff-id="{{ s['id'] }}" data-day="sat">
 								<option value="">(空)</option>
@@ -36,8 +39,12 @@
 							</select>
 						</div>
 					</li>
+					{% endif %}
+					{% if s['sun_evection'] is not none or s['sun_content'] or s['sun_begin_time'] or s['sun_end_time'] %}
 					<li>
+                        <!--
 						<strong>周日</strong>
+                    -->
 						<div>
 							<select class="preset-content" data-staff-id="{{ s['id'] }}" data-day="sun">
 								<option value="">(空)</option>
@@ -59,6 +66,7 @@
 							</select>
 						</div>
 					</li>
+					{% endif %}
 				</ul>
 			</li>
 		{% endfor %}
