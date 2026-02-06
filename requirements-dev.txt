@@ -1,0 +1,6 @@
+# Development / test dependencies
+pytest==8.4.1
+pyflakes==3.1.0
+flake8==6.1.0
+black==24.7.0
+mypy==1.9.0
