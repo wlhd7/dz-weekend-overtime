@@ -26,17 +26,29 @@ def toggle_sat():
     staff_id = data.get("staff_id")
     status = data.get("status")
     day = data.get("day", "sat")
+    
+    # Validate inputs
+    try:
+        staff_id = int(staff_id)
+        if staff_id <= 0:
+            return jsonify(ok=False, error="invalid staff_id"), 400
+    except (TypeError, ValueError):
+        return jsonify(ok=False, error="invalid staff_id"), 400
+    
     if day not in ("sat", "sun"):
         return jsonify(ok=False, error="invalid day"), 400
 
-    if not staff_id or status not in ("bg-1", "bg-2", "bg-3"):
+    if status not in ("bg-1", "bg-2", "bg-3"):
         return jsonify(ok=False, error="invalid payload"), 400
 
     db = get_db()
     try:
         # Removal case: bg-1 -> delete any existing row
         if status == "bg-1":
-            db.execute(f"DELETE FROM {day} WHERE staff_id = ?", (staff_id,))
+            if day == "sat":
+                db.execute("DELETE FROM sat WHERE staff_id = ?", (staff_id,))
+            else:  # day == "sun"
+                db.execute("DELETE FROM sun WHERE staff_id = ?", (staff_id,))
             db.commit()
             return jsonify(ok=True)
 
@@ -46,11 +58,12 @@ def toggle_sat():
         # Some older DBs may lack a UNIQUE(staff_id) constraint; deleting any
         # existing row first prevents inserting duplicates and avoids JOIN
         # duplication in the main query.
-        db.execute(f"DELETE FROM {day} WHERE staff_id = ?", (staff_id,))
-        db.execute(
-            f"INSERT INTO {day} (staff_id, is_evection) VALUES (?, ?)",
-            (staff_id, is_evection),
-        )
+        if day == "sat":
+            db.execute("DELETE FROM sat WHERE staff_id = ?", (staff_id,))
+            db.execute("INSERT INTO sat (staff_id, is_evection) VALUES (?, ?)", (staff_id, is_evection))
+        else:  # day == "sun"
+            db.execute("DELETE FROM sun WHERE staff_id = ?", (staff_id,))
+            db.execute("INSERT INTO sun (staff_id, is_evection) VALUES (?, ?)", (staff_id, is_evection))
         db.commit()
         return jsonify(ok=True)
     except Exception as e:

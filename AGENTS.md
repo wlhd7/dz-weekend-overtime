@@ -98,11 +98,19 @@ except Exception as e:
 ```python
 return redirect(url_for('select_department'))
 ```
-- Dynamic route handlers should validate input.
+- Dynamic route handlers should validate input thoroughly.
 ```python
 cookie_val = request.cookies.get('department')
 if not cookie_val:
     return redirect(url_for('select_department'))
+
+# Example: Enhanced input validation
+try:
+    staff_id = int(staff_id)
+    if staff_id <= 0:
+        return jsonify(ok=False, error="invalid staff_id"), 400
+except (TypeError, ValueError):
+    return jsonify(ok=False, error="invalid staff_id"), 400
 ```
 
 ### 3.2 Templates
@@ -113,6 +121,7 @@ if not cookie_val:
 - Follow existing patterns for table design and naming (see `schema.sql`).
 - Use normalized rows when possible.
 - Tokens such as `bg-1` (default), `bg-2` (overtime), and `bg-3` (business trip) must be consistent with CSS classes.
+- **Security Note**: Always use parameterized queries instead of f-string SQL construction to prevent injection.
 
 ### 3.4 JSON Standards
 - Payloads should follow this structure when sent or received via Ajax/Fetch:
@@ -137,10 +146,15 @@ if not cookie_val:
 ### 4.1 Recent Changes
 - Normalized `sat` and `sun` tables now replace per-date columns for overtime tracking.
 - Added `log_operation_file()` for logging JSON lines during modifications.
+- **Security Enhancements**: 
+  - Enhanced input validation in `toggle_sat.py` with proper integer validation
+  - Replaced f-string SQL construction with parameterized queries to prevent SQL injection
+  - Improved JavaScript error handling with null checks for `prevClass`
+- **Removed Features**: Preset management functionality has been removed from main interface
 
 ### 4.2 Legacy Quirks
 - Dynamic runtime-altered columns exist but should eventually migrate to normalized rows.
-- Fix known issue in `db.py`: `datetime` import missing when using `datetime.fromisoformat`.
+- **Fixed**: `datetime` import issue in `db.py` has been resolved - `datetime.fromisoformat` is properly imported.
 
 For any structural changes to routes or database tables, consult `weekendOvertime/__init__.py` for route registration patterns, and ensure that updates sync with frontend templates and client-side JavaScript logic.
 

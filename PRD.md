@@ -84,18 +84,7 @@
 
 ### 3.4 预设管理模块
 
-#### 3.4.1 内容预设
-- **功能描述**：管理常用的加班内容描述
-- **业务规则**：
-  - 按部门独立管理预设
-  - 支持添加和删除预设
-  - 预设名称在部门内唯一
-
-#### 3.4.2 时间预设
-- **功能描述**：管理常用的加班时间段
-- **业务规则**：
-  - 按部门独立管理时间预设
-  - 支持标准化时间段配置
+> **注意**：预设管理功能已从主界面移除，相关路由和模板已删除。如需恢复此功能，请重新实现相关路由和模板。
 
 ### 3.5 统计查看模块
 
@@ -124,12 +113,11 @@ graph TD
     C --> D
     D --> E[管理员工名单]
     D --> F[设置加班状态]
-    D --> G[管理预设内容]
     E --> H[添加/删除员工]
     F --> I[切换周六/周日]
     F --> J[设置员工状态]
-    G --> K[添加/删除预设]
-    J --> L[保存状态]
+    J --> K[AJAX保存]
+    K --> L[更新界面显示]
     L --> M[查看统计信息]
 ```
 
@@ -163,8 +151,6 @@ erDiagram
     sub_departments ||--o{ staffs : belongs_to
     staffs ||--o{ sat : has
     staffs ||--o{ sun : has
-    departments ||--o{ presets_content : owns
-    departments ||--o{ presets_time : owns
 
     departments {
         int id PK
@@ -202,18 +188,6 @@ erDiagram
         string begin_time
         string end_time
         int updated_at
-    }
-    
-    presets_content {
-        int id PK
-        string preset_name UK
-        int department_id FK
-    }
-    
-    presets_time {
-        int id PK
-        string preset_name UK
-        int department_id FK
     }
 ```
 
@@ -284,11 +258,12 @@ erDiagram
 
 ## 9. 版本规划
 
-### 9.1 当前版本 (v1.0)
+### 9.1 当前版本 (v1.1)
 - ✅ 基础加班管理功能
 - ✅ 多部门支持
-- ✅ 预设内容管理
 - ✅ 实时统计查看
+- ✅ 安全性增强（输入验证、SQL注入防护）
+- ✅ JavaScript错误处理优化
 
 ### 9.2 未来规划
 - 📋 用户权限管理系统
@@ -299,6 +274,6 @@ erDiagram
 
 ---
 
-**文档版本**：v1.0  
+**文档版本**：v1.1  
 **创建日期**：2026年2月7日  
 **最后更新**：2026年2月7日
