@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import Optional
+from sqlalchemy import text
+from typing import Optional, List
 
 from ..database import get_db
 from ..models import Staff, Sat, Sun
@@ -94,7 +95,7 @@ async def get_overtime_status(
         raise HTTPException(status_code=400, detail="Department ID required")
     
     staffs = db.execute(
-        """
+        text("""
         SELECT
             s.id as staff_id,
             sat.is_evection as sat_evection,
@@ -102,10 +103,10 @@ async def get_overtime_status(
         FROM staffs s
         LEFT JOIN sat ON sat.staff_id = s.id
         LEFT JOIN sun ON sun.staff_id = s.id
-        WHERE s.department_id = ?
+        WHERE s.department_id = :dept_id
         ORDER BY s.name
-        """,
-        (dept_id,)
+        """),
+        {"dept_id": dept_id}
     ).fetchall()
     
-    return [dict(staff) for staff in staffs]
+    return [staff._mapping for staff in staffs]

@@ -21,6 +21,7 @@ class DepartmentSelectRequest(BaseModel):
     department_id: int
 
 @router.get("/", response_model=List[DepartmentResponse])
+@router.get("", response_model=List[DepartmentResponse])
 async def get_departments(db: Session = Depends(get_db)):
     """Get all departments"""
     departments = db.query(Department).all()

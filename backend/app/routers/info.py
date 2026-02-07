@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import Dict, List
 
 from ..database import get_db, get_china_day
@@ -15,7 +16,7 @@ async def get_info_statistics(db: Session = Depends(get_db)):
     sat_rows = []
     try:
         sat_rows = db.execute(
-            """
+            text("""
             SELECT 
                 s.id AS staff_id,
                 s.name AS staff_name,
@@ -25,7 +26,7 @@ async def get_info_statistics(db: Session = Depends(get_db)):
             JOIN staffs s ON sat.staff_id = s.id
             JOIN departments d ON s.department_id = d.id
             ORDER BY d.name, s.name
-            """
+            """)
         ).fetchall()
     except Exception:
         sat_rows = []
@@ -34,7 +35,7 @@ async def get_info_statistics(db: Session = Depends(get_db)):
     sun_rows = []
     try:
         sun_rows = db.execute(
-            """
+            text("""
             SELECT 
                 s.id AS staff_id,
                 s.name AS staff_name,
@@ -44,7 +45,7 @@ async def get_info_statistics(db: Session = Depends(get_db)):
             JOIN staffs s ON sun.staff_id = s.id
             JOIN departments d ON s.department_id = d.id
             ORDER BY d.name, s.name
-            """
+            """)
         ).fetchall()
     except Exception:
         sun_rows = []
@@ -54,9 +55,10 @@ async def get_info_statistics(db: Session = Depends(get_db)):
         normal = {}
         evection = {}
         for row in rows:
-            dept = row["dept_name"] or "未知"
-            name = row["staff_name"]
-            if row["is_evection"]:
+            row_dict = row._mapping
+            dept = row_dict["dept_name"] or "未知"
+            name = row_dict["staff_name"]
+            if row_dict["is_evection"]:
                 evection.setdefault(dept, []).append(name)
             else:
                 normal.setdefault(dept, []).append(name)

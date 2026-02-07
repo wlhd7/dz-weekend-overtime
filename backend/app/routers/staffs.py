@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Cookie
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List, Optional
 
 from ..database import get_db
@@ -49,13 +50,14 @@ def get_department_from_cookie(department: Optional[str] = Cookie(None)) -> int:
         raise HTTPException(status_code=400, detail="Invalid department cookie")
 
 @router.get("/", response_model=List[StaffResponse])
+@router.get("", response_model=List[StaffResponse])
 async def get_staffs(
     dept_id: int = Depends(get_department_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Get staff by department with sub-department and overtime info"""
     staffs = db.execute(
-        """
+        text("""
         SELECT
             s.id,
             s.name,
@@ -68,13 +70,13 @@ async def get_staffs(
         LEFT JOIN sub_departments sd ON s.sub_department_id = sd.id
         LEFT JOIN sat ON sat.staff_id = s.id
         LEFT JOIN sun ON sun.staff_id = s.id
-        WHERE s.department_id = ?
+        WHERE s.department_id = :dept_id
         ORDER BY s.name
-        """,
-        (dept_id,)
+        """),
+        {"dept_id": dept_id}
     ).fetchall()
     
-    return [dict(staff) for staff in staffs]
+    return [staff._mapping for staff in staffs]
 
 @router.get("/sub-departments", response_model=List[SubDepartmentResponse])
 async def get_sub_departments(
