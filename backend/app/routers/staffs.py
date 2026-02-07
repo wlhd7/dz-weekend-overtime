@@ -35,7 +35,7 @@ class StaffAddRequest(BaseModel):
 class StaffRemoveRequest(BaseModel):
     name: str
 
-def get_department_from_cookie(department: str = Cookie(None)) -> int:
+def get_department_from_cookie(department: Optional[str] = Cookie(None)) -> int:
     """Extract and validate department from cookie"""
     if not department:
         raise HTTPException(status_code=400, detail="Department cookie not found")

@@ -2,7 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
+
 try:
     from zoneinfo import ZoneInfo
 except Exception:
