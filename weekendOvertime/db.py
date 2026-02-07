@@ -1,40 +1,3 @@
-import sqlite3
-from datetime import datetime
-from flask import current_app, g
-import click
-
-
-def get_db() -> sqlite3.Connection:
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-                #
-                current_app.config['DATABASE'],
-                #
-                detect_types=sqlite3.PARSE_DECLTYPES
-            )
-        #
-        g.db.row_factory=sqlite3.Row
-        try:
-            # Use WAL to reduce writer contention and set a busy timeout
-            # what is WAL?
-            g.db.execute("PRAGMA journal_mode=WAL;")
-        except Exception:
-            pass
-        try:
-            g.db.execute("PRAGMA busy_timeout=5000;")
-        except Exception:
-            pass
-
-    return g.db
-
-
-def close_db(e=None):
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
-
-
 """Database helpers for the weekendOvertime Flask app.
 
 This module provides a small set of utilities for working with the
@@ -80,10 +43,10 @@ def get_db() -> sqlite3.Connection:
       immediately.
     """
 
-    if 'db' not in g:
+    if "db" not in g:
         # Lazy-create the connection and attach to `g` for request scope.
         g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
+            current_app.config["DATABASE"],
             detect_types=sqlite3.PARSE_DECLTYPES,
         )
 
@@ -93,21 +56,16 @@ def get_db() -> sqlite3.Connection:
         # Attempt to set WAL journal mode. If the PRAGMA fails for any
         # reason we swallow the exception: the app will still work with
         # the default journal mode, but WAL is preferred for concurrency.
-        try:
-            g.db.execute("PRAGMA journal_mode=WAL;")
-        except Exception:
-            pass
-
         # Ask SQLite to wait a short while when the DB is locked instead
         # of failing immediately. This helps when many clients perform
         # writes in rapid succession.
         try:
+            g.db.execute("PRAGMA journal_mode=WAL;")
             g.db.execute("PRAGMA busy_timeout=5000;")
         except Exception:
             pass
 
     return g.db
-
 
 def close_db(e=None):
     """Close the database connection for the current request.
@@ -116,7 +74,7 @@ def close_db(e=None):
     `teardown_appcontext` so it runs automatically after each request.
     """
 
-    db = g.pop('db', None)
+    db = g.pop("db", None)
 
     if db is not None:
         db.close()
@@ -135,11 +93,11 @@ def init_database():
     db = get_db()
 
     # `open_resource` reads files relative to the application package.
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf-8'))
+    with current_app.open_resource("schema.sql") as f:
+        db.executescript(f.read().decode("utf-8"))
 
 
-@click.command('init-db')
+@click.command("init-db")
 def init_db_command():
     """CLI command to initialize the database.
 
@@ -148,7 +106,7 @@ def init_db_command():
     """
 
     init_database()
-    click.echo('Initialized the database')
+    click.echo("Initialized the database")
 
 
 # Register a converter so SQLite values declared as `timestamp` are
@@ -156,7 +114,7 @@ def init_db_command():
 # converter receives the raw bytes from SQLite, so we decode and parse
 # them using `datetime.fromisoformat` which matches the serializer used
 # when writing timestamps in ISO format.
-sqlite3.register_converter('timestamp', lambda v: datetime.fromisoformat(v.decode()))
+sqlite3.register_converter("timestamp", lambda v: datetime.fromisoformat(v.decode()))
 
 
 def init_db(app):

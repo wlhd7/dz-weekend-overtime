@@ -22,9 +22,6 @@
         </select>
     </div>
 
-    <a href="{{ url_for('preset_add') }}">编辑预设</a>
-    <a href="{{ url_for('view') }}">编辑加班内容</a>
-
     <form method="post" action="{{ url_for('edit_names') }}">
         <label for="name">姓名：</label>
         <input type="text" id="name" name="name" required>

@@ -6,7 +6,7 @@ This file provides detailed instructions for agentic coding agents working in th
 
 ## 1. Build, Lint, and Test Commands
 
-### Build and Development
+### 1.1 Build and Development
 - **Set Flask App and Run Development Server:**
   ```bash
   export FLASK_APP=weekendOvertime:create_app
@@ -18,7 +18,7 @@ This file provides detailed instructions for agentic coding agents working in th
   flask init-db
   ```
 
-### Lint Commands
+### 1.2 Lint Commands
 - Syntax/Lint Check:
   ```bash
   python -m pyflakes .
@@ -28,7 +28,7 @@ This file provides detailed instructions for agentic coding agents working in th
   python -m pyflakes weekendOvertime
   ```
 
-### Testing
+### 1.3 Testing
 - Testing Framework: Flask's `app.test_client()`
 - Example Single Test Workflow:
   ```python
@@ -48,7 +48,7 @@ This file provides detailed instructions for agentic coding agents working in th
 
 ## 2. Code Style Guidelines
 
-### General Guidelines
+### 2.1 General Guidelines
 - **PEP 8:** Follow PEP 8 for formatting and code style.
 - **Imports:**
   - Standard library imports first, third-party libraries second, local imports last.
@@ -58,13 +58,13 @@ This file provides detailed instructions for agentic coding agents working in th
   from ..db import get_db
   ```
 
-### Naming Conventions
+### 2.2 Naming Conventions
 - **Variables and Functions:** Use `snake_case`.
 - **Classes:** Use `CamelCase`.
 - **Constants:** Use `UPPER_CASE_WITH_UNDERSCORES`.
 - **Modules and Packages:** Use lowercase and avoid underscores unless necessary.
 
-### Type Annotations
+### 2.3 Type Annotations
 - Always include type hints.
 ```python
 from typing import List, Dict
@@ -73,12 +73,12 @@ def fetch_staffs(dept_id: int) -> List[Dict]:
     ...
 ```
 
-### Formatting
+### 2.4 Formatting
 - Use spaces, not tabs (4 spaces per indentation level).
 - Maximum line length: 79 characters.
 - Always ensure one blank line before function definitions and two blank lines before class definitions.
 
-### Error Handling
+### 2.5 Error Handling
 - Always log exceptions and use `db.rollback()` for database-related errors.
 ```python
 try:
@@ -93,7 +93,7 @@ except Exception as e:
 
 ## 3. Project-Specific Conventions
 
-### Routing and Endpoints
+### 3.1 Routing and Endpoints
 - Include clear, expressive endpoint names in `url_for()`.
 ```python
 return redirect(url_for('select_department'))
@@ -105,16 +105,16 @@ if not cookie_val:
     return redirect(url_for('select_department'))
 ```
 
-### Templates
+### 3.2 Templates
 - Use `{% extends 'base.html' %}` to derive templates from the shared layout.
 - Avoid inline CSS or JS; use `static/` files.
 
-### Database Schema
+### 3.3 Database Schema
 - Follow existing patterns for table design and naming (see `schema.sql`).
 - Use normalized rows when possible.
 - Tokens such as `bg-1` (default), `bg-2` (overtime), and `bg-3` (business trip) must be consistent with CSS classes.
 
-### JSON Standards
+### 3.4 JSON Standards
 - Payloads should follow this structure when sent or received via Ajax/Fetch:
 ```json
 {
@@ -127,19 +127,54 @@ if not cookie_val:
 }
 ```
 
-### Logging
+### 3.5 Logging
 - Log all operations (e.g., add/remove actions and status changes) to `instance/user-operation.log` using `log_operation_file()` defined in `weekendOvertime/db.py`.
 
 ---
 
 ## 4. New Features and Legacy Notes
 
-### Recent Changes
+### 4.1 Recent Changes
 - Normalized `sat` and `sun` tables now replace per-date columns for overtime tracking.
 - Added `log_operation_file()` for logging JSON lines during modifications.
 
-### Legacy Quirks
+### 4.2 Legacy Quirks
 - Dynamic runtime-altered columns exist but should eventually migrate to normalized rows.
 - Fix known issue in `db.py`: `datetime` import missing when using `datetime.fromisoformat`.
 
 For any structural changes to routes or database tables, consult `weekendOvertime/__init__.py` for route registration patterns, and ensure that updates sync with frontend templates and client-side JavaScript logic.
+
+---
+
+## 5. Business Context Reference
+
+### 5.1 When to Consult PRD.md
+Before implementing new features or modifying existing functionality, consult `PRD.md` for complete business context:
+
+#### 5.2 Feature Development
+- **Section 3.1-3.5**: Detailed functional requirements for each module
+- **Section 4**: Business workflows and user interaction patterns
+- **Section 5**: Data model constraints and entity relationships
+
+#### 5.3 Route and Endpoint Changes
+- Cross-reference with PRD section 3.3 for status token meanings (`bg-1`, `bg-2`, `bg-3`)
+- Ensure API responses align with JSON standards in PRD section 3.3.2
+- Validate user workflows against PRD section 4 business flows
+
+#### 5.4 Database Modifications
+- Reference PRD section 5 for complete entity relationship diagrams
+- Maintain compatibility with existing data structures described in PRD
+- Ensure schema changes support business requirements in PRD section 3
+
+#### 5.5 UI/Template Updates
+- Align with user workflows described in PRD section 4
+- Maintain consistency with business rules in PRD section 3
+- Support department isolation requirements from PRD section 2.1
+
+### 5.6 Validation Checklist
+Before committing changes, verify:
+- [ ] Implementation matches PRD functional requirements
+- [ ] User workflow aligns with PRD business flows
+- [ ] Data model maintains PRD-defined relationships
+- [ ] Status tokens follow PRD section 3.3.1 definitions
+- [ ] Department isolation is preserved per PRD section 2.1
