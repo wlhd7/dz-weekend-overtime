@@ -33,21 +33,22 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ElMessage } from 'element-plus'
 
-const props = defineProps({
-  loading: {
-    type: Boolean,
-    default: false
-  },
-  staffCount: {
-    type: Number,
-    default: 0
-  }
+type StaffStatus = 'bg-1' | 'bg-2' | 'bg-3'
+
+const props = withDefaults(defineProps<{
+  loading?: boolean
+  staffCount?: number
+}>(), {
+  loading: false,
+  staffCount: 0
 })
 
-const emit = defineEmits(['apply-to-all'])
+const emit = defineEmits<{
+  (event: 'apply-to-all', status: StaffStatus): void
+}>()
 
 const handleClearAll = async () => {
   if (props.staffCount === 0) {
@@ -55,10 +56,7 @@ const handleClearAll = async () => {
     return
   }
   
-  const success = await emit('apply-to-all', 'bg-1')
-  if (success) {
-    ElMessage.success('已清空所有加班状态')
-  }
+  emit('apply-to-all', 'bg-1')
 }
 
 const handleSetAllInternal = async () => {
@@ -67,10 +65,7 @@ const handleSetAllInternal = async () => {
     return
   }
   
-  const success = await emit('apply-to-all', 'bg-2')
-  if (success) {
-    ElMessage.success('已设置全部为公司内加班')
-  }
+  emit('apply-to-all', 'bg-2')
 }
 
 const handleSetAllEvection = async () => {
@@ -79,10 +74,7 @@ const handleSetAllEvection = async () => {
     return
   }
   
-  const success = await emit('apply-to-all', 'bg-3')
-  if (success) {
-    ElMessage.success('已设置全部为出差')
-  }
+  emit('apply-to-all', 'bg-3')
 }
 </script>
 

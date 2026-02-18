@@ -37,7 +37,7 @@
 
 ### 3.1 环境要求
 - Python 3.8+
-- Node.js 16+
+- Node.js 18+（Vite 5 要求）
 - Docker & Docker Compose (生产环境)
 
 ### 3.2 开发环境
@@ -55,34 +55,35 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-#### 3.2.3 开发环境设置（可选）
+#### 3.2.3 一键启动全栈（推荐）
 ```bash
-# 安装开发依赖（包含代码格式化、检查、测试工具）
-pip install -e .[dev]
+./start-dev.sh
+```
 
-# 或在backend目录下
-cd backend
-pip install -e ..[dev]
-
+#### 3.2.4 开发环境设置（可选）
+```bash
 # 安装pre-commit钩子
+pip install pre-commit
 pre-commit install
 
-# 使用开发工具
-black .                    # 代码格式化
-flake8 .                   # 代码检查
-mypy .                     # 类型检查
-pytest                     # 运行测试
+# 使用开发工具（按需安装）
+pip install black flake8 mypy pytest
+
+black backend/              # 代码格式化
+flake8 backend/             # 代码检查
+mypy backend/               # 类型检查
+cd backend && pytest        # 运行测试
 pre-commit run --all-files  # 运行所有pre-commit检查
 ```
 
-#### 3.2.4 启动前端
+#### 3.2.5 启动前端
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-#### 3.2.5 访问应用
+#### 3.2.6 访问应用
 - 前端：http://localhost:5173
 - 后端API：http://localhost:8000
 - API文档：http://localhost:8000/docs
@@ -134,25 +135,27 @@ dz-weekend-overtime/
 │   ├── requirements.txt    # Python依赖
 │   └── Dockerfile          # 后端Docker配置
 ├── frontend/               # Vue.js前端
-│   ├── .vite/              # Vite缓存目录
 │   ├── src/
-│   │   ├── components/    # Vue组件（当前为空）
+│   │   ├── components/     # Vue组件
+│   │   │   ├── BatchOperations.vue
+│   │   │   ├── StaffForm.vue
+│   │   │   └── StaffList.vue
 │   │   ├── router/         # 路由配置
-│   │   │   └── index.js
+│   │   │   └── index.ts
 │   │   ├── stores/         # Pinia状态管理
-│   │   │   ├── department.js      # 部门状态管理
-│   │   │   └── staff.js           # 员工状态管理
+│   │   │   ├── department.ts      # 部门状态管理
+│   │   │   └── staff.ts           # 员工状态管理
 │   │   ├── utils/          # 工具函数
-│   │   │   └── api.js             # API请求工具
+│   │   │   └── api.ts             # API请求工具
 │   │   ├── views/          # 页面组件
 │   │   │   ├── DepartmentSelect.vue  # 部门选择页面
 │   │   │   ├── Home.vue            # 主页面
 │   │   │   └── Info.vue            # 统计信息页面
 │   │   ├── App.vue         # 根组件
-│   │   └── main.js         # 前端入口
+│   │   ├── main.ts         # 前端入口
+│   │   └── shims-vue.d.ts  # TS声明
 │   ├── index.html          # HTML入口文件
 │   ├── nginx.conf          # Nginx配置（生产环境）
-│   ├── node_modules/       # Node.js依赖包
 │   ├── package.json        # Node.js依赖
 │   ├── package-lock.json   # 依赖锁定文件
 │   ├── vite.config.js      # Vite构建配置
@@ -209,8 +212,8 @@ pre-commit run --all-files
 - `POST /api/departments/select` - 设置部门Cookie
 
 ### 6.2 员工管理
-- `GET /api/staffs` - 获取部门员工
-- `GET /api/staffs/sub-departments` - 获取子部门
+- `GET /api/staffs` - 获取当前部门员工（依赖 `department` Cookie）
+- `GET /api/staffs/sub-departments` - 获取当前部门子部门（依赖 `department` Cookie）
 - `POST /api/staffs/add` - 添加员工
 - `POST /api/staffs/remove` - 删除员工
 
@@ -234,15 +237,14 @@ pre-commit run --all-files
 
 ### 8.1 后端测试
 ```bash
-cd backend
-pip install -e ..[dev]  # 安装开发依赖
-python -m pytest
+cd backend && pytest
 ```
 
 ### 8.2 前端测试
 ```bash
 cd frontend
-npm run test
+npm run typecheck
+npm run build
 ```
 
 ### 8.3 手动测试
@@ -287,7 +289,7 @@ npm run test
 
 ## 14. 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+本仓库当前未提供 LICENSE 文件。
 
 ## 15. 📞 支持
 
@@ -299,5 +301,5 @@ npm run test
 ---
 
 **版本**：v2.0  
-**最后更新**：2026年2月8日  
-**架构**：Vue.js + FastAPI 前后端分离
+**最后更新**：2026年2月17日  
+**架构**：Vue 3 + FastAPI 前后端分离

@@ -35,28 +35,35 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+type Staff = {
+  id: number
+  name?: string
+  sub_department_id?: number
+  sub_department_name?: string
+  [key: string]: unknown
+}
 
-const props = defineProps({
-  staffs: {
-    type: Array,
-    required: true
-  },
-  subDepartments: {
-    type: Array,
-    default: () => []
-  },
-  getStaffClass: {
-    type: Function,
-    required: true
-  }
+type SubDepartment = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
+
+const props = withDefaults(defineProps<{
+  staffs: Staff[]
+  subDepartments?: SubDepartment[]
+  getStaffClass: (staff: Staff) => string
+}>(), {
+  subDepartments: () => []
 })
 
-const emit = defineEmits(['toggle-staff'])
+defineEmits<{
+  (event: 'toggle-staff', staff: Staff): void
+}>()
 
-const getStaffsBySubDept = (subDeptId) => {
-  return props.staffs.filter(s => s.sub_department_id === subDeptId)
+const getStaffsBySubDept = (subDeptId: number): Staff[] => {
+  return props.staffs.filter((staff) => staff.sub_department_id === subDeptId)
 }
 </script>
 

@@ -42,25 +42,31 @@
   </el-form>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
-const props = defineProps({
-  loading: {
-    type: Boolean,
-    default: false
-  },
-  subDepartments: {
-    type: Array,
-    default: () => []
-  }
+type SubDepartment = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
+
+const props = withDefaults(defineProps<{
+  loading?: boolean
+  subDepartments?: SubDepartment[]
+}>(), {
+  loading: false,
+  subDepartments: () => []
 })
 
-const emit = defineEmits(['add-staff', 'remove-staff'])
+const emit = defineEmits<{
+  (event: 'add-staff', payload: { name: string; subDepartmentId: number | null }): void
+  (event: 'remove-staff', payload: string): void
+}>()
 
 const staffName = ref('')
-const selectedSubDepartment = ref(null)
+const selectedSubDepartment = ref<number | null>(null)
 
 // Reset form when sub-departments change
 watch(() => props.subDepartments, () => {
@@ -96,7 +102,9 @@ defineExpose({
   },
   focus: () => {
     // Focus on the input field
-    const input = document.querySelector('.staff-form input')
+    const input = document.querySelector<HTMLInputElement>(
+      '.staff-form input'
+    )
     if (input) {
       input.focus()
     }

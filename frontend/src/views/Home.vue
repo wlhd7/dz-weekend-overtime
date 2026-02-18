@@ -87,52 +87,82 @@
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted, watch } from 'vue'
+<script lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useDepartmentStore } from '../stores/department'
 import { useStaffStore } from '../stores/staff'
+
+type DayKey = 'sat' | 'sun'
+
+type Department = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
+
+type SubDepartment = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
+
+type Staff = {
+  id: number
+  name?: string
+  sub_department_id?: number
+  sub_department_name?: string
+  [key: string]: unknown
+}
 
 export default {
   name: 'Home',
   setup() {
     const departmentStore = useDepartmentStore()
     const staffStore = useStaffStore()
-    
-    const newStaffName = ref('')
-    const selectedSubDepartment = ref(null)
 
-    const currentDepartment = computed(() => departmentStore.currentDepartment)
-    const subDepartments = computed(() => departmentStore.subDepartments)
-    const staffs = computed(() => staffStore.staffs)
+    const newStaffName = ref('')
+    const selectedSubDepartment = ref<number | null>(null)
+
+    const currentDepartment = computed(() =>
+      departmentStore.currentDepartment as Department | null
+    )
+    const subDepartments = computed(() =>
+      departmentStore.subDepartments as SubDepartment[]
+    )
+    const staffs = computed(() => staffStore.staffs as Staff[])
     const loading = computed(() => staffStore.loading)
-    const selectedDay = computed({
-      get: () => staffStore.selectedDay,
-      set: (value) => staffStore.selectedDay = value
+    const selectedDay = computed<DayKey>({
+      get: () => staffStore.selectedDay as DayKey,
+      set: (value) => {
+        staffStore.selectedDay = value
+      }
     })
 
     const groupedStaffs = computed(() => {
       if (subDepartments.value.length === 0) return staffs.value
-      
-      return subDepartments.value.map(sd => ({
+
+      return subDepartments.value.map((sd) => ({
         subDept: sd,
-        staffs: staffs.value.filter(s => s.sub_department_id === sd.id)
+        staffs: staffs.value.filter((staff) =>
+          staff.sub_department_id === sd.id
+        )
       }))
     })
 
-    const getStaffsBySubDept = (subDeptId) => {
-      return staffs.value.filter(s => s.sub_department_id === subDeptId)
+    const getStaffsBySubDept = (subDeptId: number): Staff[] => {
+      return staffs.value.filter((staff) => staff.sub_department_id === subDeptId)
     }
 
-    const getStaffClass = (staff) => {
+    const getStaffClass = (staff: Staff): string => {
       return staffStore.getStaffClass(staff)
     }
 
-    const onDayChange = () => {
+    const onDayChange = (): void => {
       // Force re-render when day changes
     }
 
-    const addStaff = async () => {
+    const addStaff = async (): Promise<void> => {
       if (!newStaffName.value.trim()) {
         ElMessage.warning('请输入姓名')
         return
@@ -142,7 +172,7 @@ export default {
         newStaffName.value.trim(),
         selectedSubDepartment.value
       )
-      
+
       if (success) {
         ElMessage.success('添加成功')
         newStaffName.value = ''
@@ -152,14 +182,14 @@ export default {
       }
     }
 
-    const removeStaff = async () => {
+    const removeStaff = async (): Promise<void> => {
       if (!newStaffName.value.trim()) {
         ElMessage.warning('请输入要移除的姓名')
         return
       }
 
       const success = await staffStore.removeStaff(newStaffName.value.trim())
-      
+
       if (success) {
         ElMessage.success('移除成功')
         newStaffName.value = ''
@@ -168,30 +198,30 @@ export default {
       }
     }
 
-    const toggleStaffStatus = async (staff) => {
+    const toggleStaffStatus = async (staff: Staff): Promise<void> => {
       const currentStatus = staffStore.getStaffCurrentStatus(staff)
       const success = await staffStore.toggleStaffStatus(staff.id, currentStatus)
-      
+
       if (!success) {
         ElMessage.error('状态更新失败')
       }
     }
 
-    const clearAll = async () => {
+    const clearAll = async (): Promise<void> => {
       const success = await staffStore.applyToAll('bg-1')
       if (success) {
         ElMessage.success('已清空所有加班状态')
       }
     }
 
-    const setAllInternal = async () => {
+    const setAllInternal = async (): Promise<void> => {
       const success = await staffStore.applyToAll('bg-2')
       if (success) {
         ElMessage.success('已设置全部为公司内加班')
       }
     }
 
-    const setAllEvection = async () => {
+    const setAllEvection = async (): Promise<void> => {
       const success = await staffStore.applyToAll('bg-3')
       if (success) {
         ElMessage.success('已设置全部为出差')
@@ -199,13 +229,15 @@ export default {
     }
 
     onMounted(async () => {
-      // Check if department is selected
       const hasDepartment = await departmentStore.checkCurrentDepartment()
       if (!hasDepartment) {
         return
       }
 
-      // Fetch staffs for current department
+      if (!currentDepartment.value) {
+        return
+      }
+
       await staffStore.fetchStaffs(currentDepartment.value.id)
     })
 

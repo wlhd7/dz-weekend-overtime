@@ -16,20 +16,26 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDepartmentStore } from '../stores/department'
+
+type Department = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
 
 export default {
   name: 'DepartmentSelect',
   setup() {
     const router = useRouter()
     const departmentStore = useDepartmentStore()
-    const departments = ref([])
+    const departments = ref<Department[]>([])
     const loading = ref(false)
 
-    const selectDepartment = async (deptId) => {
+    const selectDepartment = async (deptId: number): Promise<void> => {
       loading.value = true
       try {
         const success = await departmentStore.selectDepartment(deptId)
@@ -43,7 +49,7 @@ export default {
 
     onMounted(async () => {
       await departmentStore.fetchDepartments()
-      departments.value = departmentStore.departments
+      departments.value = departmentStore.departments as Department[]
     })
 
     return {

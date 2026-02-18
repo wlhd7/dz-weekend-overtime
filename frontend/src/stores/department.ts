@@ -2,24 +2,38 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '../utils/api'
 
-export const useDepartmentStore = defineStore('department', () => {
-  const departments = ref([])
-  const currentDepartment = ref(null)
-  const subDepartments = ref([])
+type Department = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
 
-  const fetchDepartments = async () => {
+type SubDepartment = {
+  id: number
+  name?: string
+  [key: string]: unknown
+}
+
+export const useDepartmentStore = defineStore('department', () => {
+  const departments = ref<Department[]>([])
+  const currentDepartment = ref<Department | null>(null)
+  const subDepartments = ref<SubDepartment[]>([])
+
+  const fetchDepartments = async (): Promise<void> => {
     try {
-      const response = await api.get('/departments')
+      const response = await api.get<Department[]>('/departments')
       departments.value = response.data
     } catch (error) {
       console.error('Failed to fetch departments:', error)
     }
   }
 
-  const selectDepartment = async (departmentId) => {
+  const selectDepartment = async (departmentId: number): Promise<boolean> => {
     try {
       await api.post('/departments/select', { department_id: departmentId })
-      currentDepartment.value = departments.value.find(d => d.id === departmentId)
+      currentDepartment.value = departments.value.find(
+        (department) => department.id === departmentId
+      ) || null
       return true
     } catch (error) {
       console.error('Failed to select department:', error)
@@ -27,9 +41,9 @@ export const useDepartmentStore = defineStore('department', () => {
     }
   }
 
-  const fetchSubDepartments = async (departmentId) => {
+  const fetchSubDepartments = async (departmentId: number): Promise<void> => {
     try {
-      const response = await api.get(`/staffs/sub-departments`, {
+      const response = await api.get<SubDepartment[]>('/staffs/sub-departments', {
         params: { department_id: departmentId }
       })
       subDepartments.value = response.data
@@ -38,10 +52,9 @@ export const useDepartmentStore = defineStore('department', () => {
     }
   }
 
-  const checkCurrentDepartment = async () => {
+  const checkCurrentDepartment = async (): Promise<boolean> => {
     try {
-      // Get department from cookie via API
-      const response = await api.get('/departments/current')
+      const response = await api.get<Department | null>('/departments/current')
       if (response.data) {
         currentDepartment.value = response.data
         await fetchSubDepartments(response.data.id)

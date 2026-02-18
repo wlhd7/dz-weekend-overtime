@@ -1,23 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import DepartmentSelect from '../views/DepartmentSelect.vue'
-import Info from '../views/Info.vue'
-
-const routes = [
+import type { RouteRecordRaw } from 'vue-router'
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: () => import('../views/Home.vue')
   },
   {
     path: '/select-department',
     name: 'DepartmentSelect',
-    component: DepartmentSelect
+    component: () => import('../views/DepartmentSelect.vue')
   },
   {
     path: '/info',
     name: 'Info',
-    component: Info
+    component: () => import('../views/Info.vue')
   }
 ]
 

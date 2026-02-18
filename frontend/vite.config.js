@@ -12,6 +12,18 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../backend/static'
+    outDir: '../backend/static',
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue'],
+          router: ['vue-router'],
+          pinia: ['pinia'],
+          element: ['element-plus'],
+          axios: ['axios']
+        }
+      }
+    }
   }
 })

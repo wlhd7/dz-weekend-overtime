@@ -28,24 +28,38 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '../utils/api'
+
+type DepartmentStats = Record<string, string[]>
+
+type StatisticsResponse = {
+  today: number
+  sat: {
+    normal: DepartmentStats
+    evection: DepartmentStats
+  }
+  sun: {
+    normal: DepartmentStats
+    evection: DepartmentStats
+  }
+}
 
 export default {
   name: 'Info',
   setup() {
     const today = ref(0)
-    const satNormal = ref({})
-    const satEvection = ref({})
-    const sunNormal = ref({})
-    const sunEvection = ref({})
+    const satNormal = ref<DepartmentStats>({})
+    const satEvection = ref<DepartmentStats>({})
+    const sunNormal = ref<DepartmentStats>({})
+    const sunEvection = ref<DepartmentStats>({})
 
-    const fetchStatistics = async () => {
+    const fetchStatistics = async (): Promise<void> => {
       try {
-        const response = await api.get('/info/statistics')
+        const response = await api.get<StatisticsResponse>('/info/statistics')
         const data = response.data
-        
+
         today.value = data.today
         satNormal.value = data.sat.normal
         satEvection.value = data.sat.evection
