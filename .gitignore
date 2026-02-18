@@ -37,6 +37,7 @@ Thumbs.db
 EOF
 
 # Node build artifacts
+node_modules/
 frontend/node_modules/
 frontend/.vite/
 frontend/dist/
@@ -45,3 +46,6 @@ frontend/.package-lock.json
 # Local sqlite files
 database/*.sqlite
 database/*.sqlite-*
+
+# Backend static files
+backend/static/
