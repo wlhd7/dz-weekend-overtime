@@ -2,26 +2,22 @@
   <div class="info">
     <h2>今日标注名单 ({{ today }}日)</h2>
     
-    <div class="day-section">
-      <h3>周六</h3>
+    <div v-for="option in dayOptions" :key="option.value" class="day-section">
+      <h3>{{ option.label }}</h3>
       <div class="department-section">
-        <div v-for="dept in Object.keys(satNormal)" :key="dept" class="dept-group">
-          <h4>{{ dept }}: {{ satNormal[dept].join(', ') }}</h4>
+        <div
+          v-for="dept in Object.keys(dayStats[option.value]?.normal || {})"
+          :key="dept"
+          class="dept-group"
+        >
+          <h4>{{ dept }}: {{ dayStats[option.value]?.normal?.[dept]?.join(', ') }}</h4>
         </div>
-        <div v-for="dept in Object.keys(satEvection)" :key="'evec-' + dept" class="dept-group">
-          <h4>{{ dept }} evection: {{ satEvection[dept].join(', ') }}</h4>
-        </div>
-      </div>
-    </div>
-
-    <div class="day-section">
-      <h3>周日</h3>
-      <div class="department-section">
-        <div v-for="dept in Object.keys(sunNormal)" :key="dept" class="dept-group">
-          <h4>{{ dept }}: {{ sunNormal[dept].join(', ') }}</h4>
-        </div>
-        <div v-for="dept in Object.keys(sunEvection)" :key="'evec-' + dept" class="dept-group">
-          <h4>{{ dept }} evection: {{ sunEvection[dept].join(', ') }}</h4>
+        <div
+          v-for="dept in Object.keys(dayStats[option.value]?.evection || {})"
+          :key="'evec-' + dept"
+          class="dept-group"
+        >
+          <h4>{{ dept }} evection: {{ dayStats[option.value]?.evection?.[dept]?.join(', ') }}</h4>
         </div>
       </div>
     </div>
@@ -31,29 +27,38 @@
 <script lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '../utils/api'
+import {
+  buildRollingDayOptions,
+  type DayKey,
+  type DayOption
+} from '../utils/rollingDayOptions'
 
 type DepartmentStats = Record<string, string[]>
 
+type DayStats = {
+  normal: DepartmentStats
+  evection: DepartmentStats
+}
+
 type StatisticsResponse = {
   today: number
-  sat: {
-    normal: DepartmentStats
-    evection: DepartmentStats
-  }
-  sun: {
-    normal: DepartmentStats
-    evection: DepartmentStats
-  }
+  days: Record<DayKey, DayStats>
+}
+
+const buildEmptyDayStats = (): Record<DayKey, DayStats> => {
+  const dayTokens: DayKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+  return dayTokens.reduce((acc, key) => {
+    acc[key] = { normal: {}, evection: {} }
+    return acc
+  }, {} as Record<DayKey, DayStats>)
 }
 
 export default {
   name: 'Info',
   setup() {
     const today = ref(0)
-    const satNormal = ref<DepartmentStats>({})
-    const satEvection = ref<DepartmentStats>({})
-    const sunNormal = ref<DepartmentStats>({})
-    const sunEvection = ref<DepartmentStats>({})
+    const dayOptions = ref<DayOption[]>(buildRollingDayOptions())
+    const dayStats = ref<Record<DayKey, DayStats>>(buildEmptyDayStats())
 
     const fetchStatistics = async (): Promise<void> => {
       try {
@@ -61,10 +66,7 @@ export default {
         const data = response.data
 
         today.value = data.today
-        satNormal.value = data.sat.normal
-        satEvection.value = data.sat.evection
-        sunNormal.value = data.sun.normal
-        sunEvection.value = data.sun.evection
+        dayStats.value = { ...buildEmptyDayStats(), ...data.days }
       } catch (error) {
         console.error('Failed to fetch statistics:', error)
       }
@@ -76,10 +78,8 @@ export default {
 
     return {
       today,
-      satNormal,
-      satEvection,
-      sunNormal,
-      sunEvection
+      dayOptions,
+      dayStats
     }
   }
 }

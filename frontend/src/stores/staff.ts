@@ -1,22 +1,20 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '../utils/api'
+import { getTomorrowToken, type DayKey } from '../utils/rollingDayOptions'
 
 type StaffStatus = 'bg-1' | 'bg-2' | 'bg-3'
-type DayKey = 'sat' | 'sun'
 
 type Staff = {
   id: number
   department_id?: number
-  sat_evection?: boolean | null
-  sun_evection?: boolean | null
   [key: string]: unknown
-}
+} & Partial<Record<DayKey, StaffStatus>>
 
 export const useStaffStore = defineStore('staff', () => {
   const staffs = ref<Staff[]>([])
   const loading = ref(false)
-  const selectedDay = ref<DayKey>('sat')
+  const selectedDay = ref<DayKey>(getTomorrowToken())
 
   const fetchStaffs = async (departmentId?: number): Promise<void> => {
     loading.value = true
@@ -70,21 +68,16 @@ export const useStaffStore = defineStore('staff', () => {
     else nextStatus = 'bg-1'
 
     try {
+      const dayKey = selectedDay.value
       await api.post('/overtime/toggle', {
         staff_id: staffId,
         status: nextStatus,
-        day: selectedDay.value
+        day: dayKey
       })
 
       const staff = staffs.value.find((item) => item.id === staffId)
       if (staff) {
-        if (selectedDay.value === 'sat') {
-          staff.sat_evection =
-            nextStatus === 'bg-3' ? true : (nextStatus === 'bg-2' ? false : null)
-        } else {
-          staff.sun_evection =
-            nextStatus === 'bg-3' ? true : (nextStatus === 'bg-2' ? false : null)
-        }
+        staff[dayKey] = nextStatus
       }
 
       return true
@@ -95,9 +88,15 @@ export const useStaffStore = defineStore('staff', () => {
   }
 
   const applyToAll = async (targetStatus: StaffStatus): Promise<boolean> => {
-    const promises = staffs.value.map((staff) =>
-      toggleStaffStatus(staff.id, getStaffCurrentStatus(staff))
-    )
+    const dayKey = selectedDay.value
+    const promises = staffs.value.map(async (staff) => {
+      await api.post('/overtime/toggle', {
+        staff_id: staff.id,
+        status: targetStatus,
+        day: dayKey
+      })
+      staff[dayKey] = targetStatus
+    })
 
     try {
       await Promise.all(promises)
@@ -110,10 +109,8 @@ export const useStaffStore = defineStore('staff', () => {
   }
 
   const getStaffCurrentStatus = (staff: Staff): StaffStatus => {
-    const evection = selectedDay.value === 'sat' ? staff.sat_evection : staff.sun_evection
-    if (evection === true) return 'bg-3'
-    if (evection === false) return 'bg-2'
-    return 'bg-1'
+    const status = staff[selectedDay.value]
+    return status ?? 'bg-1'
   }
 
   const getStaffClass = (staff: Staff): StaffStatus => {

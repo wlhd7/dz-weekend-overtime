@@ -10,8 +10,12 @@
       <div class="day-inline">
         <label class="day-label">显示日期：</label>
         <el-select class="day-select" v-model="selectedDay" @change="onDayChange">
-          <el-option label="周六" value="sat" />
-          <el-option label="周日" value="sun" />
+          <el-option
+            v-for="option in dayOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
         </el-select>
       </div>
     </div>
@@ -95,8 +99,11 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useDepartmentStore } from '../stores/department'
 import { useStaffStore } from '../stores/staff'
-
-type DayKey = 'sat' | 'sun'
+import {
+  buildRollingDayOptions,
+  type DayKey,
+  type DayOption
+} from '../utils/rollingDayOptions'
 
 type Department = {
   id: number
@@ -126,6 +133,7 @@ export default {
 
     const newStaffName = ref('')
     const selectedSubDepartment = ref<number | null>(null)
+    const dayOptions = ref<DayOption[]>(buildRollingDayOptions())
 
     const currentDepartment = computed(() =>
       departmentStore.currentDepartment as Department | null
@@ -141,6 +149,12 @@ export default {
         staffStore.selectedDay = value
       }
     })
+
+    const ensureSelectedDay = (): void => {
+      if (!dayOptions.value.some((option) => option.value === selectedDay.value)) {
+        selectedDay.value = dayOptions.value[0]?.value ?? 'mon'
+      }
+    }
 
     const groupedStaffs = computed(() => {
       if (subDepartments.value.length === 0) return staffs.value
@@ -232,6 +246,7 @@ export default {
     }
 
     onMounted(async () => {
+      ensureSelectedDay()
       const hasDepartment = await departmentStore.checkCurrentDepartment()
       if (!hasDepartment) {
         return
@@ -252,6 +267,7 @@ export default {
       selectedDay,
       newStaffName,
       selectedSubDepartment,
+      dayOptions,
       groupedStaffs,
       getStaffsBySubDept,
       getStaffClass,
@@ -304,7 +320,7 @@ export default {
 }
 
 .day-select {
-  width: 6.5em;
+  width: 10em;
 }
 
 .ops-panel {
