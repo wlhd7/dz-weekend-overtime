@@ -2,47 +2,50 @@
   <div class="home">
     <!-- Header -->
     <div class="header">
-      <h2>{{ currentDepartment?.name }}</h2>
-      <el-button @click="$router.push('/select-department')">切换部门</el-button>
-    </div>
+      <div class="header-left">
+        <h2>{{ currentDepartment?.name }}</h2>
+        <el-button @click="$router.push('/select-department')">切换部门</el-button>
+      </div>
 
-    <!-- Day Selection -->
-    <div class="day">
-      <label>显示日期：</label>
-      <el-select v-model="selectedDay" @change="onDayChange">
-        <el-option label="周六" value="sat" />
-        <el-option label="周日" value="sun" />
-      </el-select>
-    </div>
-
-    <!-- Staff Management Form -->
-    <el-form :inline="true" class="staff-form">
-      <el-form-item label="姓名：">
-        <el-input v-model="newStaffName" placeholder="请输入姓名" />
-      </el-form-item>
-      
-      <el-form-item v-if="subDepartments.length > 0" label="班组：">
-        <el-select v-model="selectedSubDepartment">
-          <el-option 
-            v-for="sd in subDepartments" 
-            :key="sd.id"
-            :label="sd.name"
-            :value="sd.id"
-          />
+      <div class="day-inline">
+        <label class="day-label">显示日期：</label>
+        <el-select class="day-select" v-model="selectedDay" @change="onDayChange">
+          <el-option label="周六" value="sat" />
+          <el-option label="周日" value="sun" />
         </el-select>
-      </el-form-item>
-      
-      <el-form-item>
-        <el-button type="primary" @click="addStaff" :loading="loading">添加</el-button>
-        <el-button type="danger" @click="removeStaff" :loading="loading">移除</el-button>
-      </el-form-item>
-    </el-form>
+      </div>
+    </div>
 
-    <!-- Batch Operations -->
-    <div class="function">
-      <el-button @click="clearAll" :loading="loading">无人加班</el-button>
-      <el-button @click="setAllInternal" :loading="loading">全部公司内加班</el-button>
-      <el-button @click="setAllEvection" :loading="loading">全部出差</el-button>
+    <div class="ops-panel">
+      <!-- Staff Management Form -->
+      <el-form :inline="true" class="staff-form">
+        <el-form-item label="姓名：">
+          <el-input v-model="newStaffName" placeholder="请输入姓名" />
+        </el-form-item>
+        
+        <el-form-item v-if="subDepartments.length > 0" label="班组：">
+          <el-select v-model="selectedSubDepartment">
+            <el-option 
+              v-for="sd in subDepartments" 
+              :key="sd.id"
+              :label="sd.name"
+              :value="sd.id"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item>
+          <el-button type="primary" @click="addStaff" :loading="loading">添加</el-button>
+          <el-button type="danger" @click="removeStaff" :loading="loading">移除</el-button>
+        </el-form-item>
+      </el-form>
+
+      <!-- Batch Operations -->
+      <div class="function">
+        <el-button @click="clearAll" :loading="loading">无人加班</el-button>
+        <el-button @click="setAllInternal" :loading="loading">全部公司内加班</el-button>
+        <el-button @click="setAllEvection" :loading="loading">全部出差</el-button>
+      </div>
     </div>
 
     <div class="note">
@@ -266,15 +269,72 @@ export default {
 
 <style scoped>
 .home {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
 }
 
-.staff-form {
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-left h2 {
+  margin: 0;
+}
+
+.day-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-label {
+  white-space: nowrap;
+}
+
+.day-select {
+  width: 6.5em;
+}
+
+.ops-panel {
   border: 2px solid green;
   padding: 10px;
   margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+}
+
+.staff-form {
+  margin: 0;
+}
+
+.staff-form :deep(.el-form-item) {
+  align-items: center;
+}
+
+.function {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.function :deep(button) {
+  margin-right: 0;
 }
 
 .sub-dept-block {
