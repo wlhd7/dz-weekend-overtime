@@ -75,6 +75,10 @@ export default {
   margin-top: 20px;
 }
 
+.department-buttons :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
 .dept-button {
   width: 100%;
   height: 60px;
