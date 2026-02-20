@@ -28,7 +28,7 @@
         </el-form-item>
         
         <el-form-item v-if="subDepartments.length > 0" label="班组：">
-          <el-select v-model="selectedSubDepartment">
+          <el-select class="sub-dept-select" v-model="selectedSubDepartment">
             <el-option 
               v-for="sd in subDepartments" 
               :key="sd.id"
@@ -339,6 +339,10 @@ export default {
 
 .staff-form :deep(.el-form-item) {
   align-items: center;
+}
+
+.sub-dept-select {
+  min-width: 10em;
 }
 
 .function {
