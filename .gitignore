@@ -28,6 +28,9 @@ instance/
 .DS_Store
 Thumbs.db
 
+# Git worktrees
+.worktrees/
+
 # Logs
 *.log
 
