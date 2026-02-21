@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import logging
+import os
 
 from .routers import departments, staffs, overtime, info, exports
 from .database import engine, Base, SessionLocal
@@ -51,6 +52,8 @@ app.include_router(info.router, prefix="/api/info", tags=["info"])
 app.include_router(exports.router, prefix="/api/exports", tags=["exports"])
 
 # Serve static files (for production)
+# Create static directory if it doesn't exist
+os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
