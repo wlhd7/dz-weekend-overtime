@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -9,8 +10,10 @@ try:
 except Exception:
     ZoneInfo = None
 
-# SQLite database configuration
-SQLITE_DATABASE_URL = "sqlite:///../database/weekend-overtime.sqlite"
+# SQLite database configuration - use env var or default
+SQLITE_DATABASE_URL = os.environ.get(
+    "SQLITE_DATABASE_URL", "sqlite:///../database/weekend-overtime.sqlite"
+)
 
 # Create engine with WAL mode for better concurrency
 engine = create_engine(
@@ -29,6 +32,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Base class for models
 Base = declarative_base()
 
+
 # Dependency to get DB session
 def get_db():
     db = SessionLocal()
@@ -36,6 +40,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 def get_china_day():
     """Get current day in China timezone"""
