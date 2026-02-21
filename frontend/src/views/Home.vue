@@ -4,7 +4,10 @@
     <div class="header">
       <div class="header-left">
         <h2>{{ currentDepartment?.name }}</h2>
-        <el-button @click="$router.push('/select-department')">切换部门</el-button>
+        <div class="header-actions">
+          <el-button @click="$router.push('/select-department')">切换部门</el-button>
+          <el-button type="primary" plain @click="openExportDialog">制表</el-button>
+        </div>
       </div>
 
       <div class="day-inline">
@@ -26,18 +29,18 @@
         <el-form-item label="姓名：">
           <el-input v-model="newStaffName" placeholder="请输入姓名" />
         </el-form-item>
-        
+
         <el-form-item v-if="subDepartments.length > 0" label="班组：">
           <el-select class="sub-dept-select" v-model="selectedSubDepartment">
-            <el-option 
-              v-for="sd in subDepartments" 
+            <el-option
+              v-for="sd in subDepartments"
               :key="sd.id"
               :label="sd.name"
               :value="sd.id"
             />
           </el-select>
         </el-form-item>
-        
+
         <el-form-item>
           <el-button type="primary" @click="addStaff" :loading="loading">添加</el-button>
           <el-button type="danger" @click="removeStaff" :loading="loading">移除</el-button>
@@ -63,8 +66,8 @@
         <div v-for="sd in subDepartments" :key="sd.id" class="sub-dept-block">
           <div class="sub-dept-name">{{ sd.name }}</div>
           <ul class="staff-list">
-            <li 
-              v-for="staff in getStaffsBySubDept(sd.id)" 
+            <li
+              v-for="staff in getStaffsBySubDept(sd.id)"
               :key="staff.id"
               :class="['staff', getStaffClass(staff)]"
               :data-staff-id="staff.id"
@@ -75,12 +78,12 @@
           </ul>
         </div>
       </div>
-      
+
       <!-- Without Sub-departments -->
       <div v-else>
         <ul class="staff-list">
-          <li 
-            v-for="staff in staffs" 
+          <li
+            v-for="staff in staffs"
             :key="staff.id"
             :class="['staff', getStaffClass(staff)]"
             :data-staff-id="staff.id"
@@ -91,19 +94,70 @@
         </ul>
       </div>
     </div>
+
+    <el-dialog
+      v-model="exportDialogVisible"
+      title="制表"
+      width="420px"
+      :close-on-click-modal="!exportLoading"
+      :close-on-press-escape="!exportLoading"
+    >
+      <div class="export-dialog-content">
+        <el-checkbox-group v-model="selectedExportDays" class="weekday-checkboxes">
+          <el-checkbox
+            v-for="option in exportWeekdayOptions"
+            :key="option.value"
+            :label="option.value"
+            class="weekday-checkbox"
+          >
+            {{ option.label }}
+          </el-checkbox>
+        </el-checkbox-group>
+
+        <p v-if="!hasSelectedExportDays" class="export-validation">
+          请选择至少一个日期
+        </p>
+
+        <ul v-if="exportErrors.length > 0" class="export-errors">
+          <li v-for="error in exportErrors" :key="error" class="export-error-item">
+            {{ error }}
+          </li>
+        </ul>
+      </div>
+
+      <template #footer>
+        <el-button @click="closeExportDialog" :disabled="exportLoading">取消</el-button>
+        <el-button
+          type="primary"
+          @click="confirmExport"
+          :loading="exportLoading"
+          :disabled="!hasSelectedExportDays"
+        >
+          确认
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+
 import { useDepartmentStore } from '../stores/department'
 import { useStaffStore } from '../stores/staff'
+import api from '../utils/api'
 import {
   buildRollingDayOptions,
   type DayKey,
   type DayOption
 } from '../utils/rollingDayOptions'
+import {
+  DAY_LABELS,
+  EXPORT_WEEKDAY_OPTIONS,
+  getDefaultExportWeekdays,
+  resolveWeekdaysToDates
+} from '../utils/exportWeekdays'
 
 type Department = {
   id: number
@@ -135,6 +189,12 @@ export default {
     const selectedSubDepartment = ref<number | null>(null)
     const dayOptions = ref<DayOption[]>(buildRollingDayOptions())
 
+    const exportDialogVisible = ref(false)
+    const selectedExportDays = ref<DayKey[]>([])
+    const exportLoading = ref(false)
+    const exportErrors = ref<string[]>([])
+    const exportWeekdayOptions = EXPORT_WEEKDAY_OPTIONS
+
     const currentDepartment = computed(() =>
       departmentStore.currentDepartment as Department | null
     )
@@ -149,6 +209,9 @@ export default {
         staffStore.selectedDay = value
       }
     })
+    const hasSelectedExportDays = computed(
+      () => selectedExportDays.value.length > 0
+    )
 
     const ensureSelectedDay = (): void => {
       if (!dayOptions.value.some((option) => option.value === selectedDay.value)) {
@@ -245,6 +308,108 @@ export default {
       }
     }
 
+    const parseDownloadFilename = (
+      contentDisposition?: string,
+      fallbackDate?: string
+    ): string => {
+      if (contentDisposition) {
+        const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i)
+        if (utf8Match?.[1]) {
+          try {
+            return decodeURIComponent(utf8Match[1])
+          } catch {
+            // ignore decoding errors and continue with other patterns
+          }
+        }
+
+        const plainMatch = contentDisposition.match(/filename="?([^";]+)"?/i)
+        if (plainMatch?.[1]) {
+          return plainMatch[1]
+        }
+      }
+
+      if (fallbackDate) {
+        return `${fallbackDate}_上班人员统计表.pdf`
+      }
+      return 'overtime-table.pdf'
+    }
+
+    const triggerDownload = (blob: Blob, filename: string): void => {
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    }
+
+    const openExportDialog = (): void => {
+      selectedExportDays.value = getDefaultExportWeekdays(new Date())
+      exportErrors.value = []
+      exportDialogVisible.value = true
+    }
+
+    const closeExportDialog = (): void => {
+      if (exportLoading.value) {
+        return
+      }
+      exportDialogVisible.value = false
+    }
+
+    const confirmExport = async (): Promise<void> => {
+      if (!hasSelectedExportDays.value) {
+        ElMessage.warning('请选择至少一个日期')
+        return
+      }
+
+      exportLoading.value = true
+      exportErrors.value = []
+
+      const resolvedDates = resolveWeekdaysToDates(
+        selectedExportDays.value,
+        new Date()
+      )
+
+      let successCount = 0
+      for (const resolved of resolvedDates) {
+        try {
+          const response = await api.get('/exports/overtime-table', {
+            params: { date: resolved.date },
+            responseType: 'blob'
+          })
+          const filename = parseDownloadFilename(
+            response.headers['content-disposition'],
+            resolved.date
+          )
+          triggerDownload(response.data as Blob, filename)
+          successCount += 1
+        } catch (error) {
+          exportErrors.value.push(
+            `${DAY_LABELS[resolved.day]} (${resolved.date}) 导出失败`
+          )
+        }
+      }
+
+      exportLoading.value = false
+
+      if (successCount > 0 && exportErrors.value.length === 0) {
+        ElMessage.success(`已下载 ${successCount} 份表格`)
+        exportDialogVisible.value = false
+        return
+      }
+
+      if (successCount > 0 && exportErrors.value.length > 0) {
+        ElMessage.warning(
+          `已下载 ${successCount} 份，${exportErrors.value.length} 份失败`
+        )
+        return
+      }
+
+      ElMessage.error('导出失败，请稍后重试')
+    }
+
     onMounted(async () => {
       ensureSelectedDay()
       const hasDepartment = await departmentStore.checkCurrentDepartment()
@@ -277,7 +442,16 @@ export default {
       toggleStaffStatus,
       clearAll,
       setAllInternal,
-      setAllEvection
+      setAllEvection,
+      exportDialogVisible,
+      selectedExportDays,
+      exportLoading,
+      exportErrors,
+      exportWeekdayOptions,
+      hasSelectedExportDays,
+      openExportDialog,
+      closeExportDialog,
+      confirmExport
     }
   }
 }
@@ -309,6 +483,13 @@ export default {
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .day-inline {
   display: flex;
   align-items: center;
@@ -320,7 +501,7 @@ export default {
 }
 
 .day-select {
-  width: 10em;
+  width: 11em;
 }
 
 .ops-panel {
@@ -357,6 +538,10 @@ export default {
   margin-right: 0;
 }
 
+.note {
+  margin: 12px 0;
+}
+
 .sub-dept-block {
   margin-bottom: 20px;
 }
@@ -370,5 +555,44 @@ export default {
   display: inline;
   padding: 2px 4px;
   border-radius: 3px;
+}
+
+.export-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weekday-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.weekday-checkbox {
+  margin-right: 0;
+}
+
+.export-validation {
+  margin: 0;
+  color: #c45656;
+  font-size: 13px;
+}
+
+.export-errors {
+  margin: 0;
+  padding-left: 18px;
+  color: #c45656;
+  font-size: 13px;
+}
+
+.export-error-item {
+  line-height: 1.4;
+}
+
+@media (max-width: 700px) {
+  .weekday-checkboxes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 </style>

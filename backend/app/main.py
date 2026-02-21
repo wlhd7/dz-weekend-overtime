@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import logging
 
-from .routers import departments, staffs, overtime, info
+from .routers import departments, staffs, overtime, info, exports
 from .database import engine, Base, SessionLocal
 from .services import overtime as overtime_service
 
@@ -48,6 +48,7 @@ app.include_router(departments.router, prefix="/api/departments", tags=["departm
 app.include_router(staffs.router, prefix="/api/staffs", tags=["staffs"])
 app.include_router(overtime.router, prefix="/api/overtime", tags=["overtime"])
 app.include_router(info.router, prefix="/api/info", tags=["info"])
+app.include_router(exports.router, prefix="/api/exports", tags=["exports"])
 
 # Serve static files (for production)
 app.mount("/static", StaticFiles(directory="static"), name="static")
