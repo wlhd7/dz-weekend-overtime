@@ -60,11 +60,11 @@ npm --prefix frontend run typecheck
 ## 生产部署（Docker）
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
-- 访问：`http://localhost/`
-- API：`http://localhost/api/*`
+- 访问：`http://localhost:8080/`
+- API：`http://localhost:8080/api/*`
 
 说明：`frontend/nginx.conf` 会将 `/api/` 反代到后端容器。
 
@@ -91,6 +91,13 @@ docker-compose.yml  Docker 编排（backend + frontend/nginx）
 start-dev.sh        本地开发一键启动脚本
 PRD.md              产品需求文档
 ```
+
+### Docker Compose 命令
+
+本项目使用 Docker Compose V2 语法：
+- 启动：`docker compose up -d --build`
+- 停止：`docker compose down`
+- 查看状态：`docker compose ps`
 
 ## 相关文档
 
