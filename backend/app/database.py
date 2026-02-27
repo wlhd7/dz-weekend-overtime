@@ -10,9 +10,10 @@ try:
 except Exception:
     ZoneInfo = None
 
-# SQLite database configuration - use env var or default
+# SQLite database configuration - support both common env var names
 SQLITE_DATABASE_URL = os.environ.get(
-    "SQLITE_DATABASE_URL", "sqlite:///../database/weekend-overtime.sqlite"
+    "SQLITE_DATABASE_URL", 
+    os.environ.get("DATABASE_URL", "sqlite:///./database/weekend-overtime.sqlite")
 )
 
 # Create engine with WAL mode for better concurrency

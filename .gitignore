@@ -52,3 +52,4 @@ database/*.sqlite-*
 
 # Backend static files
 backend/static/
+backend/seed_data.py
