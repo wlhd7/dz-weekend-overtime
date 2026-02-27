@@ -1,6 +1,6 @@
 [project]
 name = "weekendOvertime"
-version = "1.1.0"
+version = "1.1.1"
 description = "A weekend-overtime website"
 maintainers = [{name = "wlhd", email = "3509896163@qq.com"}]
 requires-python = ">=3.8"

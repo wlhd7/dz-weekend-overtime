@@ -1,3 +1,14 @@
+## [1.1.1] - 2026-02-28
+
+### Fixed
+- 修复后端数据库环境变量名不匹配的问题 (@fix)
+- 修正 SQLite 数据库在 Docker 容器内的默认相对路径 (@fix)
+
+### Changed
+- 将 Nginx 宿主机端口映射由 8001 调整为 8080 (@chore)
+- 统一 Docker 部署中的数据库文件名为 weekend-overtime.sqlite (@chore)
+- 开启 Vite 容器网络监听 (0.0.0.0) 以支持反向代理访问 (@chore)
+
 # CHANGELOG
 
 ## [1.1.0] - 2026-02-28
