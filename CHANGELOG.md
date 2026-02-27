@@ -1,3 +1,15 @@
+# CHANGELOG
+
+## [1.1.0] - 2026-02-28
+
+### Added
+- 实现首次登录强制跳转至部门选择页 (@feat)
+- 前端 Pinia 商店集成 checkCurrentDepartment 缓存 (@perf)
+
+### Changed
+- 使用 Nginx 反向代理配置服务 (@chore)
+- 移除后端直接端口访问限制 (@security)
+
 ## v0.0.1 - 2026-02-07
 
 ### Features
