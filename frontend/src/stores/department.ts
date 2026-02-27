@@ -34,6 +34,9 @@ export const useDepartmentStore = defineStore('department', () => {
       currentDepartment.value = departments.value.find(
         (department) => department.id === departmentId
       ) || null
+      if (currentDepartment.value) {
+        await fetchSubDepartments(departmentId)
+      }
       return true
     } catch (error) {
       console.error('Failed to select department:', error)
@@ -53,6 +56,9 @@ export const useDepartmentStore = defineStore('department', () => {
   }
 
   const checkCurrentDepartment = async (): Promise<boolean> => {
+    if (currentDepartment.value) {
+      return true
+    }
     try {
       const response = await api.get<Department | null>('/departments/current')
       if (response.data) {
