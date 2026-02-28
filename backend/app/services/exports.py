@@ -95,7 +95,7 @@ TEMPLATE_ROWS: Tuple[TemplateRow, ...] = (
     TemplateRow("机加技术部", 7, 933, 1013),
 )
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE_IMAGE_PATH = PROJECT_ROOT / "format.jpg"
 
 

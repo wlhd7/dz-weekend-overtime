@@ -53,3 +53,7 @@ database/*.sqlite-*
 # Backend static files
 backend/static/
 backend/seed_data.py
+
+# Python tools
+.pytest_cache/
+.ruff_cache/
