@@ -63,3 +63,32 @@ def test_confirm_status_without_op(db_session):
         
     finally:
         app.dependency_overrides.clear()
+
+def test_confirm_error_cases(db_session):
+    """验证确认接口的错误处理。"""
+    app.dependency_overrides[get_db] = lambda: db_session
+    try:
+        # 1. 缺失 Cookie
+        response = client.post("/api/departments/confirm")
+        assert response.status_code == 400
+        assert "cookie not found" in response.json()["detail"].lower()
+        
+        response = client.get("/api/departments/confirm-status")
+        assert response.status_code == 200
+        assert response.json()["is_confirmed"] == False
+        
+        # 2. 部门不存在
+        response = client.post("/api/departments/confirm", cookies={"department": "999"})
+        assert response.status_code == 404
+        
+        response = client.get("/api/departments/confirm-status", cookies={"department": "999"})
+        assert response.status_code == 200
+        assert response.json()["is_confirmed"] == False
+        
+        # 3. 无效的 Cookie (非整数)
+        response = client.get("/api/departments/confirm-status", cookies={"department": "abc"})
+        assert response.status_code == 200
+        assert response.json()["is_confirmed"] == False
+        
+    finally:
+        app.dependency_overrides.clear()

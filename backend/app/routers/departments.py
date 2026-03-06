@@ -111,7 +111,7 @@ async def get_confirm_status(
             return {"is_confirmed": False}
         
         # Check for operation record today
-        op = db_session_op = db.query(DepartmentOperation).filter(
+        op = db.query(DepartmentOperation).filter(
             DepartmentOperation.department_name == dept.name,
             DepartmentOperation.date == date.today()
         ).first()
