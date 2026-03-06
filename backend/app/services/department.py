@@ -9,6 +9,42 @@ from .base import BaseService
 from ..models import Department
 from ..utils.logging import logger
 
+from datetime import date, datetime
+from ..models import Department, DepartmentOperation
+
+def upsert_department_operation(db: Session, department_name: str, op_date: date):
+    """
+    更新或插入部门在特定日期的操作记录。
+    """
+    try:
+        # 尝试查找已存在的记录
+        db_op = db.query(DepartmentOperation).filter(
+            DepartmentOperation.department_name == department_name,
+            DepartmentOperation.date == op_date
+        ).first()
+        
+        if db_op:
+            # 更新最后操作时间
+            db_op.last_updated = datetime.now()
+        else:
+            # 创建新记录
+            db_op = DepartmentOperation(
+                department_name=department_name,
+                date=op_date,
+                last_updated=datetime.now()
+            )
+            db.add(db_op)
+        
+        db.commit()
+        db.refresh(db_op)
+        return db_op
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to upsert department operation for {department_name} on {op_date}: {e}")
+        # 在 TDD 中，如果由于某种原因失败（如数据库锁），我们可以选择重试或记录错误
+        # 考虑到这是辅助记录功能，不应中断主要业务逻辑，但在测试中我们需要知道。
+        raise e
+
 class DepartmentService(BaseService):
     """Service for department-related business logic."""
     

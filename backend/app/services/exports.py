@@ -16,7 +16,7 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
 
-from ..models import OvertimeWeek, Staff
+from ..models import OvertimeWeek, Staff, Department, DepartmentOperation
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +109,21 @@ class OvertimeTableExportService:
         """Assemble per-row export data for the requested date."""
         weekday_token = DAY_TOKEN_BY_WEEKDAY[export_date.weekday()]
         status_column = getattr(OvertimeWeek, weekday_token)
+        
+        # 1. 获取当天有操作记录的部门
+        active_department_names = {
+            row.department_name
+            for row in self.db.query(DepartmentOperation.department_name)
+            .filter(DepartmentOperation.date == export_date)
+            .all()
+        }
+        
+        # 获取所有部门 ID 到名称的映射
+        dept_id_to_name = {
+            d.id: d.name 
+            for d in self.db.query(Department.id, Department.name).all()
+        }
+
         raw_rows = (
             self.db.query(
                 Staff.id.label("staff_id"),
@@ -130,6 +145,11 @@ class OvertimeTableExportService:
         for raw in raw_rows:
             department_id = raw.department_id
             if department_id not in grouped:
+                continue
+            
+            # 过滤逻辑：如果该部门今天没有操作记录，则不采集其加班人员
+            dept_name = dept_id_to_name.get(department_id)
+            if dept_name not in active_department_names:
                 continue
 
             status = raw.status or "bg-1"
@@ -155,6 +175,8 @@ class OvertimeTableExportService:
             name_runs = [NameRun(name, underlined=False) for name in names_by_status[STATUS_INTERNAL]] + [
                 NameRun(name, underlined=True) for name in names_by_status[STATUS_TRIP]
             ]
+            
+            # 只有当活跃部门名单不为空时，才更新 remark_count
             rows.append(
                 DepartmentExportRow(
                     template_name=template_row.template_name,
@@ -162,7 +184,7 @@ class OvertimeTableExportService:
                     row_top=template_row.row_top,
                     row_bottom=template_row.row_bottom,
                     name_runs=name_runs,
-                    remark_count=len(names_by_status[STATUS_INTERNAL]),
+                    remark_count=len(names_by_status[STATUS_INTERNAL]) if name_runs else 0,
                 )
             )
 

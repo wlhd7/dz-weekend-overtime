@@ -5,7 +5,9 @@ from sqlalchemy import text
 from typing import List, Optional, Any
 
 from ..database import get_db
-from ..models import Staff, SubDepartment, OvertimeWeek
+from ..models import Staff, SubDepartment, OvertimeWeek, Department
+from ..services.department import upsert_department_operation
+from datetime import date
 
 router = APIRouter()
 
@@ -139,6 +141,11 @@ async def add_staff(
             ensure_overtime_week(db, new_staff.id)
             db.commit()
 
+        # Update operation record
+        dept = db.query(Department).filter(Department.id == dept_id).first()
+        if dept:
+            upsert_department_operation(db, dept.name, date.today())
+
         return {"success": True, "message": "Staff added successfully"}
 
     except Exception as e:
@@ -167,6 +174,11 @@ async def remove_staff(
 
         db.delete(staff)
         db.commit()
+
+        # Update operation record
+        dept = db.query(Department).filter(Department.id == dept_id).first()
+        if dept:
+            upsert_department_operation(db, dept.name, date.today())
 
         return {"success": True, "message": "Staff removed successfully"}
 

@@ -8,7 +8,8 @@ import logging
 
 from .base import BaseService
 from ..models import Staff, Sat, Sun, OvertimeWeek
-from .department import DepartmentService
+from .department import DepartmentService, upsert_department_operation
+from datetime import date
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +134,10 @@ class OvertimeService(BaseService):
 
             setattr(record, day, target_status)
 
+            # Update operation record
+            if staff.department:
+                upsert_department_operation(self.db, staff.department.name, date.today())
+
             success = self._commit_or_rollback(
                 "toggle_staff_status",
                 {"staff_id": staff_id, "day": day, "new_status": target_status},
@@ -196,6 +201,11 @@ class OvertimeService(BaseService):
                     self.db.add(record)
                 setattr(record, day, status)
                 updated_count += 1
+
+            # Update operation record
+            # Use name from the first staff member if available (since they are all in the same dept)
+            if staffs and staffs[0].department:
+                upsert_department_operation(self.db, staffs[0].department.name, date.today())
 
             success = self._commit_or_rollback(
                 "apply_to_all",
