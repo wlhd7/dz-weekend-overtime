@@ -15,6 +15,7 @@ export const useStaffStore = defineStore('staff', () => {
   const staffs = ref<Staff[]>([])
   const loading = ref(false)
   const selectedDay = ref<DayKey>(getTomorrowToken())
+  const isConfirmed = ref(false)
 
   const fetchStaffs = async (departmentId?: number): Promise<void> => {
     loading.value = true
@@ -30,6 +31,26 @@ export const useStaffStore = defineStore('staff', () => {
     }
   }
 
+  const fetchConfirmStatus = async (): Promise<void> => {
+    try {
+      const response = await api.get<{ is_confirmed: boolean }>('/departments/confirm-status')
+      isConfirmed.value = response.data.is_confirmed
+    } catch (error) {
+      console.error('Failed to fetch confirm status:', error)
+    }
+  }
+
+  const confirmData = async (): Promise<boolean> => {
+    try {
+      await api.post('/departments/confirm')
+      isConfirmed.value = true
+      return true
+    } catch (error) {
+      console.error('Failed to confirm data:', error)
+      return false
+    }
+  }
+
   const addStaff = async (
     name: string,
     subDepartmentId: number | null
@@ -39,6 +60,7 @@ export const useStaffStore = defineStore('staff', () => {
         name,
         sub_department_id: subDepartmentId
       })
+      isConfirmed.value = true
       await fetchStaffs(staffs.value[0]?.department_id)
       return true
     } catch (error) {
@@ -50,6 +72,7 @@ export const useStaffStore = defineStore('staff', () => {
   const removeStaff = async (name: string): Promise<boolean> => {
     try {
       await api.post('/staffs/remove', { name })
+      isConfirmed.value = true
       await fetchStaffs(staffs.value[0]?.department_id)
       return true
     } catch (error) {
@@ -80,6 +103,7 @@ export const useStaffStore = defineStore('staff', () => {
         staff[dayKey] = nextStatus
       }
 
+      isConfirmed.value = true
       return true
     } catch (error) {
       console.error('Failed to toggle staff status:', error)
@@ -100,6 +124,7 @@ export const useStaffStore = defineStore('staff', () => {
 
     try {
       await Promise.all(promises)
+      isConfirmed.value = true
       await fetchStaffs(staffs.value[0]?.department_id)
       return true
     } catch (error) {
@@ -121,7 +146,10 @@ export const useStaffStore = defineStore('staff', () => {
     staffs,
     loading,
     selectedDay,
+    isConfirmed,
     fetchStaffs,
+    fetchConfirmStatus,
+    confirmData,
     addStaff,
     removeStaff,
     toggleStaffStatus,

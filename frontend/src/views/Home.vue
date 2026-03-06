@@ -52,6 +52,14 @@
         <el-button @click="clearAll" :loading="loading">无人加班</el-button>
         <el-button @click="setAllInternal" :loading="loading">全部公司内加班</el-button>
         <el-button @click="setAllEvection" :loading="loading">全部出差</el-button>
+        <el-button 
+          class="confirm-btn" 
+          @click="confirmData" 
+          :loading="loading" 
+          :disabled="isConfirmed"
+        >
+          {{ isConfirmed ? '已确认' : '确认' }}
+        </el-button>
       </div>
     </div>
 
@@ -203,6 +211,7 @@ export default {
     )
     const staffs = computed(() => staffStore.staffs as Staff[])
     const loading = computed(() => staffStore.loading)
+    const isConfirmed = computed(() => staffStore.isConfirmed)
     const selectedDay = computed<DayKey>({
       get: () => staffStore.selectedDay as DayKey,
       set: (value) => {
@@ -305,6 +314,15 @@ export default {
       const success = await staffStore.applyToAll('bg-3')
       if (success) {
         ElMessage.success('已设置全部为出差')
+      }
+    }
+
+    const confirmData = async (): Promise<void> => {
+      const success = await staffStore.confirmData()
+      if (success) {
+        ElMessage.success('确认成功')
+      } else {
+        ElMessage.error('确认失败')
       }
     }
 
@@ -421,7 +439,10 @@ export default {
         return
       }
 
-      await staffStore.fetchStaffs(currentDepartment.value.id)
+      await Promise.all([
+        staffStore.fetchStaffs(currentDepartment.value.id),
+        staffStore.fetchConfirmStatus()
+      ])
     })
 
     return {
@@ -429,6 +450,7 @@ export default {
       subDepartments,
       staffs,
       loading,
+      isConfirmed,
       selectedDay,
       newStaffName,
       selectedSubDepartment,
@@ -443,6 +465,7 @@ export default {
       clearAll,
       setAllInternal,
       setAllEvection,
+      confirmData,
       exportDialogVisible,
       selectedExportDays,
       exportLoading,
@@ -536,6 +559,19 @@ export default {
 
 .function :deep(button) {
   margin-right: 0;
+}
+
+.confirm-btn {
+  border: 2px solid #409eff !important;
+  background-color: #fff !important;
+  color: #409eff !important;
+  font-weight: bold !important;
+}
+
+.confirm-btn.is-disabled {
+  border-color: #a0cfff !important;
+  color: #a0cfff !important;
+  background-color: #fff !important;
 }
 
 .note {

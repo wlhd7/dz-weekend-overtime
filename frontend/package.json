@@ -10,17 +10,19 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "vue": "^3.3.8",
-    "vue-router": "^4.2.5",
-    "pinia": "^2.1.7",
     "axios": "^1.6.2",
-    "element-plus": "^2.4.4"
+    "element-plus": "^2.4.4",
+    "pinia": "^2.1.7",
+    "vue": "^3.3.8",
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^28.1.0",
     "typescript": "^5.5.4",
+    "vite": "^5.0.0",
     "vitest": "^1.6.0",
-    "vue-tsc": "^2.0.29",
-    "vite": "^5.0.0"
+    "vue-tsc": "^2.0.29"
   }
 }
