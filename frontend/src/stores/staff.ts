@@ -51,6 +51,17 @@ export const useStaffStore = defineStore('staff', () => {
     }
   }
 
+  const unconfirmData = async (): Promise<boolean> => {
+    try {
+      await api.post('/departments/unconfirm')
+      isConfirmed.value = false
+      return true
+    } catch (error) {
+      console.error('Failed to unconfirm data:', error)
+      return false
+    }
+  }
+
   const addStaff = async (
     name: string,
     subDepartmentId: number | null
@@ -150,6 +161,7 @@ export const useStaffStore = defineStore('staff', () => {
     fetchStaffs,
     fetchConfirmStatus,
     confirmData,
+    unconfirmData,
     addStaff,
     removeStaff,
     toggleStaffStatus,

@@ -7,6 +7,7 @@ from typing import List, Optional, Any
 from ..database import get_db
 from ..models import Staff, SubDepartment, OvertimeWeek, Department
 from ..services.department import upsert_department_operation
+from ..services.overtime import get_date_by_token
 from datetime import date
 
 router = APIRouter()
@@ -144,13 +145,10 @@ async def add_staff(
         # Update operation record - record for upcoming weekend to ensure department is active
         dept = db.query(Department).filter(Department.id == dept_id).first()
         if dept:
-            today = date.today()
-            current_weekday = today.weekday()
-            # Record for current Sat and Sun
-            sat_date = today + timedelta(days=(5 - current_weekday))
-            sun_date = today + timedelta(days=(6 - current_weekday))
-            upsert_department_operation(db, dept.name, sat_date)
-            upsert_department_operation(db, dept.name, sun_date)
+            upsert_department_operation(db, dept.name, date.today())
+            for token in ["sat", "sun"]:
+                target_date = get_date_by_token(token)
+                upsert_department_operation(db, dept.name, target_date)
 
         return {"success": True, "message": "Staff added successfully"}
 
@@ -184,13 +182,10 @@ async def remove_staff(
         # Update operation record - record for upcoming weekend to ensure department is active
         dept = db.query(Department).filter(Department.id == dept_id).first()
         if dept:
-            today = date.today()
-            current_weekday = today.weekday()
-            # Record for current Sat and Sun
-            sat_date = today + timedelta(days=(5 - current_weekday))
-            sun_date = today + timedelta(days=(6 - current_weekday))
-            upsert_department_operation(db, dept.name, sat_date)
-            upsert_department_operation(db, dept.name, sun_date)
+            upsert_department_operation(db, dept.name, date.today())
+            for token in ["sat", "sun"]:
+                target_date = get_date_by_token(token)
+                upsert_department_operation(db, dept.name, target_date)
 
         return {"success": True, "message": "Staff removed successfully"}
 

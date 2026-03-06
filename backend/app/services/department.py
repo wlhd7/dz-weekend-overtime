@@ -41,8 +41,22 @@ def upsert_department_operation(db: Session, department_name: str, op_date: date
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to upsert department operation for {department_name} on {op_date}: {e}")
-        # 在 TDD 中，如果由于某种原因失败（如数据库锁），我们可以选择重试或记录错误
-        # 考虑到这是辅助记录功能，不应中断主要业务逻辑，但在测试中我们需要知道。
+        raise e
+
+def delete_department_operation(db: Session, department_name: str, op_date: date):
+    """
+    删除部门在特定日期的操作记录。
+    """
+    try:
+        db.query(DepartmentOperation).filter(
+            DepartmentOperation.department_name == department_name,
+            DepartmentOperation.date == op_date
+        ).delete()
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to delete department operation for {department_name} on {op_date}: {e}")
         raise e
 
 class DepartmentService(BaseService):

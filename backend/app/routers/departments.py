@@ -7,7 +7,8 @@ from datetime import date
 
 from ..database import get_db
 from ..models import Department, DepartmentOperation
-from ..services.department import upsert_department_operation
+from ..services.department import upsert_department_operation, delete_department_operation
+from ..services.overtime import get_date_by_token
 
 router = APIRouter()
 
@@ -82,7 +83,7 @@ async def confirm_department_data(
     department: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
-    """Confirm department data for today"""
+    """Confirm department data for today and upcoming weekend"""
     if not department:
         raise HTTPException(status_code=400, detail="Department cookie not found")
     
@@ -90,10 +91,39 @@ async def confirm_department_data(
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
     
-    # Use the existing upsert service
+    # 1. 记录当天的操作
     upsert_department_operation(db, dept.name, date.today())
     
+    # 2. 同时记录本周六和周日的操作，确保报表能正确导出
+    # 规范要求确认操作针对整个加班周期
+    for token in ["sat", "sun"]:
+        target_date = get_date_by_token(token)
+        upsert_department_operation(db, dept.name, target_date)
+    
     return {"success": True, "message": "Data confirmed"}
+
+@router.post("/unconfirm")
+async def unconfirm_department_data(
+    department: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    """Unconfirm department data for today and upcoming weekend"""
+    if not department:
+        raise HTTPException(status_code=400, detail="Department cookie not found")
+    
+    dept = db.query(Department).filter(Department.id == int(department)).first()
+    if not dept:
+        raise HTTPException(status_code=404, detail="Department not found")
+    
+    # 1. 删除当天的操作记录
+    delete_department_operation(db, dept.name, date.today())
+    
+    # 2. 同时删除本周六和周日的操作记录
+    for token in ["sat", "sun"]:
+        target_date = get_date_by_token(token)
+        delete_department_operation(db, dept.name, target_date)
+    
+    return {"success": True, "message": "Confirmation revoked"}
 
 @router.get("/confirm-status", response_model=ConfirmStatusResponse)
 async def get_confirm_status(

@@ -54,9 +54,9 @@
         <el-button @click="setAllEvection" :loading="loading">全部出差</el-button>
         <el-button 
           class="confirm-btn" 
-          @click="confirmData" 
+          @click="toggleConfirmation" 
           :loading="loading" 
-          :disabled="isConfirmed"
+          :class="{ 'is-confirmed': isConfirmed }"
         >
           {{ isConfirmed ? '已确认' : '确认' }}
         </el-button>
@@ -326,6 +326,23 @@ export default {
       }
     }
 
+    const unconfirmData = async (): Promise<void> => {
+      const success = await staffStore.unconfirmData()
+      if (success) {
+        ElMessage.success('已取消确认')
+      } else {
+        ElMessage.error('取消失败')
+      }
+    }
+
+    const toggleConfirmation = async (): Promise<void> => {
+      if (isConfirmed.value) {
+        await unconfirmData()
+      } else {
+        await confirmData()
+      }
+    }
+
     const parseDownloadFilename = (
       contentDisposition?: string,
       fallbackDate?: string
@@ -465,7 +482,7 @@ export default {
       clearAll,
       setAllInternal,
       setAllEvection,
-      confirmData,
+      toggleConfirmation,
       exportDialogVisible,
       selectedExportDays,
       exportLoading,
@@ -566,12 +583,18 @@ export default {
   background-color: #fff !important;
   color: #409eff !important;
   font-weight: bold !important;
+  transition: all 0.3s ease;
 }
 
-.confirm-btn.is-disabled {
-  border-color: #a0cfff !important;
-  color: #a0cfff !important;
-  background-color: #fff !important;
+.confirm-btn.is-confirmed {
+  background-color: #409eff !important;
+  color: #fff !important;
+}
+
+.confirm-btn.is-confirmed:hover {
+  background-color: #f56c6c !important;
+  border-color: #f56c6c !important;
+  color: #fff !important;
 }
 
 .note {
