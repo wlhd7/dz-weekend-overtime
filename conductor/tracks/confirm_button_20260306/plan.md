@@ -5,13 +5,13 @@
 ## Phase 1: 后端接口开发 (Backend API Development)
 *本阶段侧重于新增后端确认接口，并确保该接口能正确操作 `department_operations` 表。*
 
-- [ ] **Task: 新增确认操作 API 接口**
-    - [ ] 在 `backend/app/routers/` 中新增接口，用于接收并记录部门确认操作。
-    - [ ] 确保接口逻辑能正确在 `department_operations` 表中创建或更新记录。
-- [ ] **Task: 扩展操作记录查询逻辑**
-    - [ ] 确保前端在页面加载时，能查询到该部门在当日是否已存在操作记录，以决定按钮的初始状态。
-- [ ] **Task: 编写后端单元测试 (TDD)**
-    - [ ] 验证确认接口的幂等性和数据库记录的准确性。
+- [x] **Task: 新增确认操作 API 接口** [ee227ef]
+    - [x] 在 `backend/app/routers/` 中新增接口，用于接收并记录部门确认操作。
+    - [x] 确保接口逻辑能正确在 `department_operations` 表中创建或更新记录。
+- [x] **Task: 扩展操作记录查询逻辑** [ee227ef]
+    - [x] 确保前端在页面加载时，能查询到该部门在当日是否已存在操作记录，以决定按钮的初始状态。
+- [x] **Task: 编写后端单元测试 (TDD)** [ee227ef]
+    - [x] 验证确认接口的幂等性和数据库记录的准确性。
 - [ ] **Task: Conductor - User Manual Verification '后端接口开发' (Protocol in workflow.md)**
 
 ## Phase 2: 前端 UI 实现与集成 (Frontend UI & Integration)
