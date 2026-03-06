@@ -2,23 +2,24 @@
 
 本计划旨在实现部门每日操作记录功能，并基于该记录对加班统计报表进行过滤，确保只有当天“活跃”的部门才会显示。
 
-## Phase 1: 基础架构与后端实现 (Foundation & Backend)
+## Phase 1: 基础架构与后端实现 (Foundation & Backend) [checkpoint: 5cdc61f]
 *本阶段侧重于数据库变更和核心逻辑实现。*
 
-- [ ] **Task: 创建 DepartmentOperation 数据库模型**
-    - [ ] 在 `backend/app/models/` 中新增模型。
-    - [ ] 字段：`id`, `department_name`, `date`, `last_updated`。
-    - [ ] 运行数据库迁移或自动创建表。
-- [ ] **Task: 实现操作记录更新 Service**
-    - [ ] 编写 `upsert_department_operation(db, dept_name, date)` 函数。
-    - [ ] 确保该函数是幂等的且支持并发更新（WAL 模式）。
-- [ ] **Task: 集成操作记录钩子 (API Hooks)**
-    - [ ] 在 `Staff` 增删改 API 中调用更新函数。
-    - [ ] 在 `Overtime` 状态切换 API 中调用更新函数。
-- [ ] **Task: 修改统计报表 API 过滤逻辑**
-    - [ ] 在获取所有部门加班统计的接口中，加入对 `DepartmentOperation` 的连接或过滤。
-    - [ ] 仅返回在请求日期有操作记录的部门数据。
-- [ ] **Task: Conductor - User Manual Verification '基础架构与后端实现' (Protocol in workflow.md)**
+- [x] **Task: 创建 DepartmentOperation 数据库模型** [74fee2d]
+    - [x] 在 `backend/app/models/` 中新增模型。
+    - [x] 字段：`id`, `department_name`, `date`, `last_updated`。
+    - [x] 运行数据库迁移或自动创建表。
+- [x] **Task: 实现操作记录更新 Service** [74fee2d]
+    - [x] 编写 `upsert_department_operation(db, dept_name, date)` 函数。
+    - [x] 确保该函数是幂等的且支持并发更新（WAL 模式）。
+- [x] **Task: 集成操作记录钩子 (API Hooks)** [74fee2d]
+    - [x] 在 `Staff` 增删改 API 中调用更新函数。
+    - [x] 在 `Overtime` 状态切换 API 中调用更新函数。
+- [x] **Task: 修改统计报表 API 过滤逻辑** [74fee2d]
+    - [x] 在获取所有部门加班统计的接口中，加入对 `DepartmentOperation` 的连接或过滤。
+    - [x] 仅返回在请求日期有操作记录的部门数据。
+- [x] **Task: Conductor - User Manual Verification '基础架构与后端实现' (Protocol in workflow.md)** [5cdc61f]
+
 
 ## Phase 2: 前端集成与 UI 适配 (Frontend Integration)
 *本阶段确保前端交互能触发后端记录，并正确展示过滤后的报表。*
