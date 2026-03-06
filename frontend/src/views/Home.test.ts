@@ -53,6 +53,7 @@ describe('Home.vue', () => {
     
     const confirmBtn = wrapper.find('.confirm-btn')
     expect(confirmBtn.text()).toContain('已确认')
-    expect(confirmBtn.attributes('disabled')).toBeDefined()
+    expect(confirmBtn.classes()).toContain('is-confirmed')
+    expect(confirmBtn.attributes('disabled')).toBeUndefined()
   })
 })
