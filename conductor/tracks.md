@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: 首页新增确认按钮 - 部门加班名单状态确认**
+- [x] **Track: 首页新增确认按钮 - 部门加班名单状态确认**
 *Link: [./tracks/confirm_button_20260306/](./tracks/confirm_button_20260306/)*
