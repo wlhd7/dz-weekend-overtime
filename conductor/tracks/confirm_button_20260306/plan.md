@@ -15,7 +15,7 @@
 - [x] **Task: Conductor - User Manual Verification '后端接口开发' (Protocol in workflow.md)**
 
 
-## Phase 2: 前端 UI 实现与集成 (Frontend UI & Integration)
+## Phase 2: 前端 UI 实现与集成 (Frontend UI & Integration) [checkpoint: 884aac3]
 *本阶段侧重于首页 UI 变更、按钮逻辑控制及与后端的集成。*
 
 - [x] **Task: 首页新增确认按钮 UI** [97f0b62]
@@ -26,13 +26,14 @@
     - [x] 点击确认或发生任何名单修改时，按钮应变为“已禁用”并显示“已确认”。
 - [x] **Task: 前端组件测试** [97f0b62]
     - [x] 验证按钮在不同状态下的显示和交互逻辑。
-- [ ] **Task: Conductor - User Manual Verification '前端 UI 实现与集成' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification '前端 UI 实现与集成' (Protocol in workflow.md)**
 
-## Phase 3: 系统联调与验收 (System Integration & Verification)
+## Phase 3: 系统联调与验收 (System Integration & Verification) [checkpoint: 209e462]
 *本阶段确保前后端协同工作，并在报表中正确反映确认状态。*
 
-- [ ] **Task: 跨操作联动验证**
-    - [ ] 验证手动确认和自动确认（由修改触发）的一致性。
-- [ ] **Task: 统计报表集成验证**
-    - [ ] 验证仅通过点击确认按钮（无修改），该部门是否能出现在统计汇总报表中。
-- [ ] **Task: Conductor - User Manual Verification '系统联调与验收' (Protocol in workflow.md)**
+- [x] **Task: 跨操作联动验证** [022d881]
+    - [x] 验证手动确认和自动确认（由修改触发）的一致性。
+- [x] **Task: 统计报表集成验证** [022d881]
+    - [x] 验证仅通过点击确认按钮（无修改），该部门是否能出现在统计汇总报表中。
+- [x] **Task: Conductor - User Manual Verification '系统联调与验收' (Protocol in workflow.md)**
+
