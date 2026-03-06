@@ -7,7 +7,7 @@ from datetime import date
 
 from ..database import get_db
 from ..models import Department, DepartmentOperation
-from ..services.department import upsert_department_operation, delete_department_operation
+from ..services.department import upsert_department_operation, delete_department_operation, ensure_department_operation
 from ..services.overtime import get_date_by_token
 
 router = APIRouter()
@@ -90,15 +90,15 @@ async def confirm_department_data(
     dept = db.query(Department).filter(Department.id == int(department)).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
-    
-    # 1. 记录当天的操作
+    # 1. 记录当天的操作（更新 last_updated，锁定今天的按钮）
     upsert_department_operation(db, dept.name, date.today())
-    
-    # 2. 同时记录本周六和周日的操作，确保报表能正确导出
+
+    # 2. 确保本周六和周日的操作记录存在，确保报表能正确导出
+    # 使用 ensure 而不是 upsert，这样不会更新 last_updated，第二天按钮会自动重置
     for token in ["sat", "sun"]:
         target_date = get_date_by_token(token)
-        upsert_department_operation(db, dept.name, target_date)
-    
+        ensure_department_operation(db, dept.name, target_date)
+
     return {"success": True, "message": "Data confirmed"}
 
 @router.post("/unconfirm")
@@ -145,6 +145,12 @@ async def get_confirm_status(
             DepartmentOperation.date == date.today()
         ).first()
         
-        return {"is_confirmed": op is not None}
+        # 核心逻辑修改：只有当记录存在，且最后更新时间也是今天时，才算作“已确认”
+        # 这样即便昨天操作时提前生成了今天的记录，今天进来由于 last_updated 是昨天，按钮也会重置。
+        is_confirmed = False
+        if op and op.last_updated:
+            is_confirmed = op.last_updated.date() == date.today()
+        
+        return {"is_confirmed": is_confirmed}
     except (TypeError, ValueError):
         return {"is_confirmed": False}

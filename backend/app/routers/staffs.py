@@ -6,7 +6,7 @@ from typing import List, Optional, Any
 
 from ..database import get_db
 from ..models import Staff, SubDepartment, OvertimeWeek, Department
-from ..services.department import upsert_department_operation
+from ..services.department import upsert_department_operation, ensure_department_operation
 from ..services.overtime import get_date_by_token
 from datetime import date
 
@@ -142,13 +142,15 @@ async def add_staff(
             ensure_overtime_week(db, new_staff.id)
             db.commit()
 
-        # Update operation record - record for upcoming weekend to ensure department is active
+        # Update operation record for the whole week to ensure department is active in all reports
         dept = db.query(Department).filter(Department.id == dept_id).first()
         if dept:
+            # 今天使用 upsert（锁定今天的按钮）
             upsert_department_operation(db, dept.name, date.today())
+            # 周末使用 ensure（激活报表但不锁定第二天的按钮）
             for token in ["sat", "sun"]:
                 target_date = get_date_by_token(token)
-                upsert_department_operation(db, dept.name, target_date)
+                ensure_department_operation(db, dept.name, target_date)
 
         return {"success": True, "message": "Staff added successfully"}
 
@@ -179,13 +181,15 @@ async def remove_staff(
         db.delete(staff)
         db.commit()
 
-        # Update operation record - record for upcoming weekend to ensure department is active
+        # Update operation record for the whole week to ensure department is active in all reports
         dept = db.query(Department).filter(Department.id == dept_id).first()
         if dept:
+            # 今天使用 upsert（锁定今天的按钮）
             upsert_department_operation(db, dept.name, date.today())
+            # 周末使用 ensure（激活报表但不锁定第二天的按钮）
             for token in ["sat", "sun"]:
                 target_date = get_date_by_token(token)
-                upsert_department_operation(db, dept.name, target_date)
+                ensure_department_operation(db, dept.name, target_date)
 
         return {"success": True, "message": "Staff removed successfully"}
 

@@ -15,6 +15,7 @@ from ..models import Department, DepartmentOperation
 def upsert_department_operation(db: Session, department_name: str, op_date: date):
     """
     更新或插入部门在特定日期的操作记录。
+    会更新 last_updated 时间戳。
     """
     try:
         # 尝试查找已存在的记录
@@ -41,6 +42,31 @@ def upsert_department_operation(db: Session, department_name: str, op_date: date
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to upsert department operation for {department_name} on {op_date}: {e}")
+        raise e
+
+def ensure_department_operation(db: Session, department_name: str, op_date: date):
+    """
+    确保部门在特定日期的操作记录存在。
+    如果记录已存在，则不进行任何操作（不更新 last_updated）。
+    """
+    try:
+        db_op = db.query(DepartmentOperation).filter(
+            DepartmentOperation.department_name == department_name,
+            DepartmentOperation.date == op_date
+        ).first()
+        
+        if not db_op:
+            db_op = DepartmentOperation(
+                department_name=department_name,
+                date=op_date,
+                last_updated=datetime.now()
+            )
+            db.add(db_op)
+            db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to ensure department operation for {department_name} on {op_date}: {e}")
         raise e
 
 def delete_department_operation(db: Session, department_name: str, op_date: date):
