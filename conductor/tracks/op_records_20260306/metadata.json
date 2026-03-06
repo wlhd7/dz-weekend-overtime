@@ -1,0 +1,8 @@
+{
+  "track_id": "op_records_20260306",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-06T10:00:00Z",
+  "updated_at": "2026-03-06T10:00:00Z",
+  "description": "实现部门每日操作记录与报表过滤功能，只有在当天进行过操作的部门才会在报表中显示。"
+}
