@@ -141,10 +141,16 @@ async def add_staff(
             ensure_overtime_week(db, new_staff.id)
             db.commit()
 
-        # Update operation record
+        # Update operation record - record for upcoming weekend to ensure department is active
         dept = db.query(Department).filter(Department.id == dept_id).first()
         if dept:
-            upsert_department_operation(db, dept.name, date.today())
+            today = date.today()
+            current_weekday = today.weekday()
+            # Record for current Sat and Sun
+            sat_date = today + timedelta(days=(5 - current_weekday))
+            sun_date = today + timedelta(days=(6 - current_weekday))
+            upsert_department_operation(db, dept.name, sat_date)
+            upsert_department_operation(db, dept.name, sun_date)
 
         return {"success": True, "message": "Staff added successfully"}
 
@@ -175,10 +181,16 @@ async def remove_staff(
         db.delete(staff)
         db.commit()
 
-        # Update operation record
+        # Update operation record - record for upcoming weekend to ensure department is active
         dept = db.query(Department).filter(Department.id == dept_id).first()
         if dept:
-            upsert_department_operation(db, dept.name, date.today())
+            today = date.today()
+            current_weekday = today.weekday()
+            # Record for current Sat and Sun
+            sat_date = today + timedelta(days=(5 - current_weekday))
+            sun_date = today + timedelta(days=(6 - current_weekday))
+            upsert_department_operation(db, dept.name, sat_date)
+            upsert_department_operation(db, dept.name, sun_date)
 
         return {"success": True, "message": "Staff removed successfully"}
 

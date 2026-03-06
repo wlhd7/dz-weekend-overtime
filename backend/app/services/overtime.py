@@ -9,11 +9,23 @@ import logging
 from .base import BaseService
 from ..models import Staff, Sat, Sun, OvertimeWeek
 from .department import DepartmentService, upsert_department_operation
-from datetime import date
+from datetime import date, timedelta
 
 logger = logging.getLogger(__name__)
 
 DAY_TOKENS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+
+def get_date_by_token(day_token: str) -> date:
+    """根据星期几的 token（如 'sat'）计算出本周对应的具体日期。"""
+    today = date.today()
+    current_weekday = today.weekday() # 0-6
+    tokens = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+    try:
+        target_weekday = tokens.index(day_token)
+        diff = target_weekday - current_weekday
+        return today + timedelta(days=diff)
+    except ValueError:
+        return today
 
 
 def _legacy_status(record: Optional[Sat]) -> str:
@@ -134,9 +146,10 @@ class OvertimeService(BaseService):
 
             setattr(record, day, target_status)
 
-            # Update operation record
+            # Update operation record - use the actual date for that day_token
             if staff.department:
-                upsert_department_operation(self.db, staff.department.name, date.today())
+                target_date = get_date_by_token(day)
+                upsert_department_operation(self.db, staff.department.name, target_date)
 
             success = self._commit_or_rollback(
                 "toggle_staff_status",
@@ -202,10 +215,10 @@ class OvertimeService(BaseService):
                 setattr(record, day, status)
                 updated_count += 1
 
-            # Update operation record
-            # Use name from the first staff member if available (since they are all in the same dept)
+            # Update operation record - use the actual date for that day_token
             if staffs and staffs[0].department:
-                upsert_department_operation(self.db, staffs[0].department.name, date.today())
+                target_date = get_date_by_token(day)
+                upsert_department_operation(self.db, staffs[0].department.name, target_date)
 
             success = self._commit_or_rollback(
                 "apply_to_all",
