@@ -1,0 +1,7 @@
+# Ignore database files when building Docker image
+database/*.sqlite
+database/*.sqlite-journal
+database/*.db
+__pycache__
+*.pyc
+logs/

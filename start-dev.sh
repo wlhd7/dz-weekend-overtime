@@ -4,16 +4,8 @@
 
 echo "Starting Weekend Overtime Management System Development..."
 
-# Check if database exists
-if [ ! -f "database/weekend-overtime.sqlite" ]; then
-    echo "Database not found. Copying from instance/ if exists..."
-    if [ -f "instance/weekend-overtime.sqlite" ]; then
-        cp instance/weekend-overtime.sqlite database/
-        echo "Database copied successfully."
-    else
-        echo "No existing database found. A new one will be created."
-    fi
-fi
+# Ensure database directory exists
+mkdir -p backend/database
 
 # Start backend server
 echo "Starting FastAPI backend on port 8000..."

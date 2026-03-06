@@ -19,9 +19,9 @@ services:
     build: ./backend
     # 移除直接端口映射，通过 nginx 访问
     volumes:
-      - ./database:/app/database
+      - ./backend/database:/app/backend/database
     environment:
-      - DATABASE_URL=sqlite:///./database/weekend-overtime.sqlite
+      - DATABASE_URL=sqlite:///./backend/database/weekend-overtime.sqlite
     networks:
       - default
     restart: unless-stopped
