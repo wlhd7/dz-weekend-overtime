@@ -95,7 +95,6 @@ async def confirm_department_data(
     upsert_department_operation(db, dept.name, date.today())
     
     # 2. 同时记录本周六和周日的操作，确保报表能正确导出
-    # 规范要求确认操作针对整个加班周期
     for token in ["sat", "sun"]:
         target_date = get_date_by_token(token)
         upsert_department_operation(db, dept.name, target_date)
