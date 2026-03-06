@@ -60,3 +60,7 @@ backend/seed_data.py
 .coverage
 backend/database/*.sqlite
 backend/database/*.sqlite-journal
+
+# Local database and artifacts
+backend/database/
+cookies.txt
